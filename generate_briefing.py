@@ -207,15 +207,27 @@ def generate_briefing_json(news_map: dict[str, dict], hist: dict) -> dict:
   }}
 }}"""
 
-    resp = client.models.generate_content(
-        model="gemini-3.5-flash",
-        contents=prompt,
-        config=types.GenerateContentConfig(
-            response_mime_type="application/json",
-            temperature=0.4,
-        ),
-    )
-    return json.loads(resp.text)
+    models_to_try = ["gemini-4-hydrogen", "gemini-3.5-flash"]
+    last_err = None
+    for model_name in models_to_try:
+        for attempt in range(2):
+            try:
+                print(f"Calling {model_name} (attempt {attempt + 1})...")
+                resp = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        response_mime_type="application/json",
+                        temperature=0.4,
+                    ),
+                )
+                print(f"Succeeded with {model_name}")
+                return json.loads(resp.text)
+            except Exception as e:
+                last_err = e
+                print(f"[WARN] {model_name} failed: {e}")
+                time.sleep(3)
+    raise RuntimeError(f"All Gemini models failed: {last_err}")
 
 
 def render_html(briefing: dict, news_map: dict[str, dict], trivia_url: str, trivia_wiki_title: str) -> str:
