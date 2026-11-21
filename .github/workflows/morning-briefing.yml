@@ -1,7 +1,14 @@
 name: Daily 07:00 Morning Briefing
 
 on:
+  schedule:
+    - cron: "0 23 * * *"  # Fallback: 07:00 Beijing (UTC+8); skipped automatically if iPhone 07:00 Shortcut already ran today
   workflow_dispatch:
+    inputs:
+      force:
+        description: "Force regenerate even if today's briefing already exists (true/false)"
+        required: false
+        default: "false"
 
 permissions:
   contents: write
@@ -27,7 +34,12 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Generate briefing & push to Bark
-        run: python generate_briefing.py
+        run: |
+          if [ "${{ github.event.inputs.force }}" = "true" ]; then
+            python generate_briefing.py --force
+          else
+            python generate_briefing.py
+          fi
 
       - name: Commit briefing & GitHub Pages
         run: |
