@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Garmin 科学教练私密看板 v2.0</title>
+<style>
+  :root {
+    --bg: #0b1120;
+    --card: #111827;
+    --card2: #1e293b;
+    --border: rgba(148, 163, 184, 0.16);
+    --txt: #f8fafc;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #10b981;
+    --amber: #f59e0b;
+    --red: #ef4444;
+    --purple: #a855f7;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+    background: var(--bg);
+    color: var(--txt);
+    line-height: 1.56;
+    padding-bottom: 48px;
+  }
+  .top-hero {
+    background: linear-gradient(145deg, #0f172a 0%, #172554 55%, #0c4a6e 100%);
+    padding: calc(16px + env(safe-area-inset-top)) 16px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .hero-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .hero-title { font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
+  .hero-sub { font-size: 12px; color: #bae6fd; margin-top: 3px; }
+  .lock-pill {
+    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
+    background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35);
+    white-space: nowrap;
+  }
+  .kpi-strip {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;
+  }
+  @media (min-width: 640px) { .kpi-strip { grid-template-columns: repeat(4, 1fr); } }
+  .kpi-box {
+    background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border);
+    border-radius: 10px; padding: 9px 11px;
+  }
+  .kpi-lbl { font-size: 11px; color: var(--muted); }
+  .kpi-num { font-size: 17px; font-weight: 800; margin-top: 2px; color: #fff; }
+  .kpi-desc { font-size: 11px; color: #38bdf8; margin-top: 1px; }
+
+  .tabs {
+    position: sticky; top: 0; z-index: 30;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
+    background: rgba(11, 17, 32, 0.92); backdrop-filter: blur(12px);
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    background: var(--card); color: var(--muted); border: 1px solid var(--border);
+    border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 700;
+    cursor: pointer; text-align: center; transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: #0284c7; color: #fff; border-color: #38bdf8;
+    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+  }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 12px; }
+  .pane { display: none; }
+  .pane.active { display: block; }
+
+  .card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+  }
+  .card-title {
+    font-size: 14.5px; font-weight: 800; color: var(--accent);
+    margin-bottom: 9px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .badge {
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+  }
+  .bg-green { background: rgba(16,185,129,0.18); color: #34d399; }
+  .bg-amber { background: rgba(245,158,11,0.2); color: #fbbf24; }
+  .bg-red { background: rgba(239,68,68,0.2); color: #f87171; }
+  .bg-blue { background: rgba(56,189,248,0.16); color: #7dd3fc; }
+
+  .next-workout {
+    background: linear-gradient(135deg, rgba(30,58,138,0.55), rgba(15,23,42,0.9));
+    border: 1px solid rgba(56, 189, 248, 0.35);
+  }
+  .shoe-tag {
+    display: inline-block; margin-top: 6px; font-size: 11.5px; font-weight: 700;
+    color: #fde68a; background: rgba(217, 119, 6, 0.22); padding: 3px 9px; border-radius: 6px;
+  }
+
+  .chart-wrap {
+    background: #fff; border-radius: 9px; padding: 4px; margin: 8px 0; overflow: hidden;
+  }
+  .chart-wrap img { width: 100%; height: auto; display: block; border-radius: 6px; cursor: zoom-in; }
+  .chart-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; }
+
+  .md-body h1, .md-body h2, .md-body h3 { color: #7dd3fc; margin: 12px 0 6px; font-size: 14.5px; }
+  .md-body p { margin-bottom: 8px; font-size: 13.5px; color: #e2e8f0; }
+  .md-body ul, .md-body ol { padding-left: 18px; margin-bottom: 8px; }
+  .md-body li { margin-bottom: 5px; font-size: 13.3px; color: #e2e8f0; }
+  .md-body strong { color: #fff; }
+  .md-body code { background: rgba(148,163,184,0.18); padding: 1px 5px; border-radius: 4px; font-size: 12.2px; color: #bae6fd; }
+
+  .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
+  th { background: #1e293b; color: #bae6fd; text-align: left; padding: 7px 8px; font-weight: 700; white-space: nowrap; }
+  td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
+  tr:last-child td { border-bottom: none; }
+
+  .dim-row { margin-bottom: 9px; }
+  .dim-head { display: flex; justify-content: space-between; font-size: 12.2px; margin-bottom: 3px; }
+  .bar-bg { height: 7px; background: #1e293b; border-radius: 99px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 99px; }
+
+  .sched-item {
+    border-left: 3px solid var(--accent); padding: 8px 0 8px 11px;
+    margin-bottom: 10px; background: rgba(30,41,59,0.38); border-radius: 0 8px 8px 0;
+  }
+  .sched-head { font-size: 13.2px; font-weight: 700; color: #fff; }
+  .sched-desc { font-size: 12px; color: #cbd5e1; margin-top: 3px; }
+
+  #auth-gate {
+    max-width: 420px; margin: 70px auto; padding: 22px; text-align: center;
+  }
+  #auth-gate input {
+    width: 100%; padding: 11px; border-radius: 8px; border: 1px solid var(--border);
+    background: var(--card2); color: #fff; font-size: 13px; margin: 12px 0;
+  }
+  #auth-gate button {
+    width: 100%; padding: 11px; border-radius: 8px; border: none;
+    background: #0284c7; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  #lightbox {
+    display: none; position: fixed; inset: 0; z-index: 100;
+    background: rgba(0,0,0,0.93); align-items: center; justify-content: center; padding: 8px;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img { max-width: 100%; max-height: 94vh; object-fit: contain; border-radius: 6px; }
+</style>
+</head>
+<body>
+
+<div id="auth-gate" class="card" style="display:none;">
+  <div style="font-size:32px;margin-bottom:8px;">🔐</div>
+  <div style="font-size:16px;font-weight:800;margin-bottom:6px;">AES-256-GCM 端到端加密看板</div>
+  <div id="gate-msg" style="font-size:12.5px;color:var(--muted);">请从 iPhone Bark 推送通知直接点击进入（自动携带 #k= 密钥且永不上传服务器），或在此粘贴您的私密密钥：</div>
+  <input id="key-input" type="password" placeholder="粘贴 DASHBOARD_SECRET_KEY..." autocomplete="off">
+  <button id="unlock-btn">本地解密并打开</button>
+</div>
+
+<div id="app" style="display:none;">
+  <div class="top-hero">
+    <div class="hero-row">
+      <div>
+        <div class="hero-title">🏃 Garmin 全距离科学教练 v2.0</div>
+        <div class="hero-sub" id="sync-sub">正在解密最新运动生理数据...</div>
+      </div>
+      <div class="lock-pill">🔒 AES-256 本地已解密</div>
+    </div>
+    <div class="kpi-strip" id="kpi-strip"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="p-coach">🧠 主教练</button>
+    <button class="tab-btn" data-tab="p-hrv">💓 HRV/心率恢复</button>
+    <button class="tab-btn" data-tab="p-dist">🚀 全距离/雷达</button>
+    <button class="tab-btn" data-tab="p-plan">📅 课表/跑鞋</button>
+  </div>
+
+  <div class="container">
+    <div id="p-coach" class="pane active"></div>
+    <div id="p-hrv" class="pane"></div>
+    <div id="p-dist" class="pane"></div>
+    <div id="p-plan" class="pane"></div>
+  </div>
+</div>
+
+<div id="lightbox" onclick="this.classList.remove('open')">
+  <img id="lb-img" src="" alt="zoomed chart">
+</div>
+
+<script>
+const STORAGE_KEY = "garmin_v2_aes_key";
+
+function b64urlToBytes(s) {
+  let b64 = s.replace(/-/g, "+").replace(/_/g, "/");
+  while (b64.length % 4) b64 += "=";
+  const bin = atob(b64);
+  const out = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+  return out;
+}
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function renderMarkdown(md) {
+  if (!md) return "<p>暂无长文分析</p>";
+  const lines = md.split(/\r?\n/);
+  let html = "", inList = false;
+  const fmtInline = t => esc(t)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>");
+  for (const raw of lines) {
+    const l = raw.trim();
+    if (!l) { if (inList) { html += "</ul>"; inList = false; } continue; }
+    if (l.startsWith("### ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h3>${fmtInline(l.slice(4))}</h3>`; }
+    else if (l.startsWith("## ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h2>${fmtInline(l.slice(3))}</h2>`; }
+    else if (l.startsWith("# ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h1>${fmtInline(l.slice(2))}</h1>`; }
+    else if (/^[-*▸•]\s+/.test(l)) {
+      if (!inList) { html += "<ul>"; inList = true; }
+      html += `<li>${fmtInline(l.replace(/^[-*▸•]\s+/, ""))}</li>`;
+    } else {
+      if (inList) { html += "</ul>"; inList = false; }
+      html += `<p>${fmtInline(l)}</p>`;
+    }
+  }
+  if (inList) html += "</ul>";
+  return html;
+}
+
+function chartBlock(b64, caption) {
+  if (!b64) return "";
+  return `<div class="chart-wrap"><img src="${b64}" onclick="zoomImg(this.src)" alt="${esc(caption)}"></div><div class="chart-hint">🔍 点击图表全屏双指缩放 · ${esc(caption)}</div>`;
+}
+
+function zoomImg(src) {
+  document.getElementById("lb-img").src = src;
+  document.getElementById("lightbox").classList.add("open");
+}
+
+function renderDashboard(d) {
+  const k = d.kpis || {};
+  const rad = d.injury_radar || {};
+  const radCls = rad.level === "GREEN" ? "bg-green" : (rad.level === "YELLOW" ? "bg-amber" : "bg-red");
+  document.getElementById("sync-sub").textContent = `最新同步：${d.generated_at || "-"} · 累计 ${k.total_runs || 0} 跑 / ${k.total_km || 0} km`;
+
+  document.getElementById("kpi-strip").innerHTML = `
+    <div class="kpi-box"><div class="kpi-lbl">VO₂Max / 1000m锚点</div><div class="kpi-num">${esc(k.vo2max)} <span style="font-size:13px;color:#38bdf8;">｜${esc(k.tt_1000m)}</span></div><div class="kpi-desc">高速无氧储备充沛</div></div>
+    <div class="kpi-box"><div class="kpi-lbl">乳酸阈值 LT / FTP</div><div class="kpi-num">${esc(k.lt_pace)}</div><div class="kpi-desc">${esc(k.lt_hr)} bpm · ${esc(k.ftp_w)} W</div></div>
+    <div class="kpi-box"><div class="kpi-lbl">全天候 HRV (夜 / 日)</div><div class="kpi-num">${esc(k.hrv_night ?? "-")} <span style="font-size:13px;color:#34d399;">/ ${esc(k.hrv_day_est ?? "-")} ms</span></div><div class="kpi-desc">RHR ${esc(k.rhr ?? "-")} bpm · 电量 ${esc(k.bb_now ?? k.bb_high ?? "-")}</div></div>
+    <div class="kpi-box"><div class="kpi-lbl">隐性疲劳伤病雷达</div><div class="kpi-num">${esc(rad.risk_score_100 ?? "-")}/100</div><div class="kpi-desc"><span class="badge ${radCls}">${esc(rad.level || "GREEN")}</span></div></div>
+  `;
+
+  // Tab 1: Coach & Overview
+  const nxt = (d.upcoming_schedule || [])[0];
+  const ai = d.ai_coach || {};
+  let coachHtml = "";
+  if (nxt) {
+    coachHtml += `
+      <div class="card next-workout">
+        <div class="card-title"><span>🎯 下一节待执行课表（已同步手表）</span><span class="badge bg-blue">${esc(nxt.date)} ${esc(nxt.weekday)}</span></div>
+        <div style="font-size:15.5px;font-weight:800;color:#fff;">${esc(nxt.name)}</div>
+        <div style="font-size:12.8px;color:#dbeafe;margin-top:5px;">${esc(nxt.description)}</div>
+        <div class="shoe-tag">👟 推荐战靴：${esc(nxt.shoe)} · 预计 ${esc(nxt.dist_km)} km</div>
+      </div>`;
+  }
+  coachHtml += `
+    <div class="card">
+      <div class="card-title"><span>🧠 AI 主教练深度诊断</span><span class="badge bg-green">${esc(ai.model_used || "v2.0 Engine")}</span></div>
+      ${ai.headline ? `<div style="font-size:15px;font-weight:800;color:#fde68a;margin-bottom:10px;">「${esc(ai.headline)}」</div>` : ""}
+      <div class="md-body">${renderMarkdown(ai.full_markdown || ai.bark_body)}</div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>📈 纵向跑量与有氧效率全景</span></div>
+      ${chartBlock(d.charts?.pdf_overview, "每周跑量负荷与单次配速轨迹")}
+      ${chartBlock(d.charts?.pdf_ef, "有氧效率系数 EF 与心率-配速曲线上移")}
+    </div>`;
+  document.getElementById("p-coach").innerHTML = coachHtml;
+
+  // Tab 2: 24h HRV + Post-Workout HRR
+  const h24 = d.hrv_24h_meta || {};
+  const hrr = d.hrr_analysis || {};
+  const hrrRows = (hrr.history || []).slice().reverse().map(r => `
+    <tr>
+      <td>${esc(r.date?.slice(5))}</td>
+      <td>${esc((r.name || "").slice(0, 12))}</td>
+      <td>${esc(r.stop_hr ?? "-")}</td>
+      <td><strong style="color:#38bdf8;">${r.drop_2m != null ? "-" + r.drop_2m + " bpm" : "-"}</strong></td>
+      <td>${r.drop_5m != null ? "-" + r.drop_5m + " bpm" : "-"}</td>
+      <td>${r.drop_10m != null ? "-" + r.drop_10m + " bpm" : "-"}</td>
+      <td><strong style="color:#34d399;">${r.rel_recovery_2m_pct != null ? r.rel_recovery_2m_pct + "%" : "-"}</strong></td>
+    </tr>`).join("");
+  document.getElementById("p-hrv").innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>💓 近36h连续HRV还原与身体电量耦合</span><span class="badge bg-blue">R²=${esc(h24.r2_log_space)}</span></div>
+      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:6px;">
+        佳明白天将自主神经波动编码为「压力与身体电量」。系统利用你 <strong>${esc(h24.paired_sample_count)}</strong> 组个人夜间实测 RMSSD 与日间健康快照实测锚点，训练专属生理模型 <code>${esc(h24.model_formula)}</code>，精准还原日间毫秒级等效 HRV！
+      </div>
+      ${chartBlock(d.charts?.sci_24h_hrv_bb, "夜间实测 5min RMSSD + 日间校准还原 HRV + 身体电量双轴曲线")}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>⚡ 跑后心率恢复速度 (HRR) 追踪</span><span class="badge bg-green">基线 -${esc(hrr.baseline_drop_2m_bpm)} bpm</span></div>
+      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:6px;">副交感神经评定：<strong>${esc(hrr.parasympathetic_grade)}</strong></div>
+      ${chartBlock(d.charts?.sci_hrr_trend, "停表后 0~15 分钟心率回落曲线与储备恢复效率演变")}
+      <div class="tbl-scroll" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>日期</th><th>课表</th><th>停表HR</th><th>+2.5m降幅</th><th>+5m降幅</th><th>+10m降幅</th><th>储备恢复率</th></tr></thead>
+          <tbody>${hrrRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>😴 静息心率、夜间HRV与睡眠分期</span></div>
+      ${chartBlock(d.charts?.pdf_wellness, "静息心率 RHR、夜间 HRV 与深睡/REM 结构")}
+    </div>`;
+
+  // Tab 3: All-Distance Predictor & Injury Radar
+  const dp = d.all_distance_profile || {};
+  const predRows = (dp.all_distance_predictions || []).map(p => `
+    <tr>
+      <td><strong>${esc(p.distance)}</strong></td>
+      <td><strong>${esc(p.current_time)}</strong> <span style="color:var(--muted);">(${esc(p.current_pace)})</span></td>
+      <td style="color:#38bdf8;">${esc(p.target_4w_time)} (${esc(p.target_4w_pace)})</td>
+      <td style="color:#34d399;font-weight:700;">${esc(p.target_8w_time)} (${esc(p.target_8w_pace)})</td>
+    </tr>`).join("");
+  const dimBars = (rad.dimensions || []).map(dm => {
+    const pct = Math.min(100, (dm.score_20 / 20) * 100);
+    const col = dm.score_20 < 8 ? "#10b981" : (dm.score_20 <= 13 ? "#f59e0b" : "#ef4444");
+    return `<div class="dim-row">
+      <div class="dim-head"><span><strong>${esc(dm.name)}</strong> · <span style="color:var(--muted);">${esc(dm.detail)}</span></span><span>${esc(dm.score_20)}/20</span></div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${col};"></div></div>
+    </div>`;
+  }).join("");
+  const zoneRows = Object.values(dp.training_zones || {}).map(z => `
+    <tr><td><strong>${esc(z.name)}</strong></td><td style="color:#38bdf8;font-weight:700;">${esc(z.pace_range)}</td><td>${esc(z.hr_range)}</td><td>${esc(z.power_range)}</td></tr>
+  `).join("");
+
+  document.getElementById("p-dist").innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>🚀 全距离速度-耐力模型与伤病雷达</span><span class="badge bg-blue">b=${esc(dp.endurance_decay_exponent_b)}</span></div>
+      <div style="font-size:12.4px;color:#cbd5e1;margin-bottom:8px;">${esc(dp.phenotype_diagnosis)}</div>
+      ${chartBlock(d.charts?.sci_speed_radar, "全距离 400m~半马进阶曲线与五维隐性伤病风险雷达")}
+      <div class="tbl-scroll" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>距离项目</th><th>当前能力评估</th><th>4 周进阶目标</th><th>8 周进阶目标</th></tr></thead>
+          <tbody>${predRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🛡️ 五维隐性疲劳与伤病风险拆解</span><span class="badge ${radCls}">${esc(rad.risk_score_100)}/100</span></div>
+      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:10px;">${esc(rad.summary_badge)}</div>
+      ${dimBars}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🎯 动态 E / M / T / I / R 训练五区间</span></div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>训练区间</th><th>目标配速</th><th>控制心率</th><th>目标功率</th></tr></thead>
+          <tbody>${zoneRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+
+  // Tab 4: Rolling Schedule, Shoes & Recent Runs
+  const schedItems = (d.upcoming_schedule || []).map(s => `
+    <div class="sched-item">
+      <div class="sched-head">${esc(s.date)} (${esc(s.weekday)}) · ${esc(s.name)}</div>
+      <div class="sched-desc">${esc(s.description)}</div>
+      <div style="font-size:11.3px;color:#fde68a;margin-top:3px;">👟 ${esc(s.shoe)} · ${esc(s.dist_km)} km</div>
+    </div>`).join("");
+  const shoeRows = ((d.shoe_gear_matrix || {}).shoes || []).map(sh => `
+    <tr>
+      <td><strong>${esc(sh.name)}</strong></td>
+      <td>${esc(sh.runs)} 次</td>
+      <td><strong>${esc(sh.total_km)}</strong>/${esc(sh.max_km)} km (${esc(sh.remaining_life_pct)}%)</td>
+      <td>${esc(sh.avg_pace)}</td>
+      <td>${esc(sh.avg_gct_ms ?? "-")} ms</td>
+    </tr>`).join("");
+  const runRows = (d.recent_runs || []).map(r => `
+    <tr>
+      <td>${esc(r.date.slice(5))}</td>
+      <td><strong>${esc(r.name.slice(0, 12))}</strong></td>
+      <td>${esc(r.dist_km)}k</td>
+      <td><strong>${esc(r.pace)}</strong></td>
+      <td>${esc(r.avg_hr ?? "-")}</td>
+      <td style="color:#38bdf8;">${esc(r.ef_adj ?? "-")}</td>
+      <td style="color:#34d399;">${r.hrr_2m != null ? "-" + r.hrr_2m : "-"}</td>
+      <td>${esc(r.shoe)}</td>
+    </tr>`).join("");
+
+  document.getElementById("p-plan").innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>📅 已 1:1 同步手表的滚动高阶课表</span><span class="badge bg-green">${(d.upcoming_schedule || []).length} 节待执行</span></div>
+      ${schedItems || "<p>暂无待执行课表</p>"}
+    </div>
+    <div class="card">
+      <div class="card-title"><span>👟 跑鞋寿命与碳板生物力学矩阵</span></div>
+      <div style="font-size:12px;color:#cbd5e1;margin-bottom:8px;">${esc(d.shoe_gear_matrix?.coach_shoe_rule)}</div>
+      <div class="tbl-scroll">
+        <table>
+          <thead><tr><th>跑鞋名称</th><th>次数</th><th>里程 / 寿命余量</th><th>均配速</th><th>平均触地</th></tr></thead>
+          <tbody>${shoeRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>🏃 跑姿动力学与近期 15 次跑步记录</span></div>
+      ${chartBlock(d.charts?.pdf_biomech, "全速域步频×步幅前沿面与触地时间演进")}
+      ${chartBlock(d.charts?.pdf_splits, "重点课分段解剖与有氧解耦率")}
+      <div class="tbl-scroll" style="margin-top:10px;">
+        <table>
+          <thead><tr><th>日期</th><th>名称</th><th>距离</th><th>配速</th><th>均HR</th><th>校准EF</th><th>2m降HR</th><th>跑鞋</th></tr></thead>
+          <tbody>${runRows}</tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+async function tryDecrypt(keyStr) {
+  const keyBytes = b64urlToBytes(keyStr.trim());
+  if (keyBytes.length !== 32) throw new Error("密钥长度无效（需 256-bit base64url）");
+  const resp = await fetch("./payload.enc.json?t=" + Date.now(), { cache: "no-store" });
+  if (!resp.ok) throw new Error("密文加载失败 HTTP " + resp.status);
+  const enc = await resp.json();
+  const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
+  const plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64urlToBytes(enc.iv) }, cryptoKey, b64urlToBytes(enc.ct));
+  const jsonText = new TextDecoder("utf-8").decode(plainBuf);
+  return JSON.parse(jsonText);
+}
+
+async function boot() {
+  document.querySelectorAll(".tab-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".pane").forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById(btn.dataset.tab).classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+  });
+
+  const hashMatch = location.hash.match(/[#&]k=([A-Za-z0-9_-]+)/);
+  let keyStr = hashMatch ? hashMatch[1] : localStorage.getItem(STORAGE_KEY);
+
+  if (keyStr) {
+    try {
+      const data = await tryDecrypt(keyStr);
+      localStorage.setItem(STORAGE_KEY, keyStr);
+      document.getElementById("auth-gate").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      renderDashboard(data);
+      return;
+    } catch (e) {
+      console.warn("Auto-decrypt failed:", e);
+      document.getElementById("gate-msg").textContent = "解密失败（密钥不匹配或密文更新中）：" + e.message;
+    }
+  }
+  document.getElementById("auth-gate").style.display = "block";
+}
+
+document.getElementById("unlock-btn").addEventListener("click", async () => {
+  const val = document.getElementById("key-input").value.trim();
+  if (!val) return;
+  try {
+    const data = await tryDecrypt(val);
+    localStorage.setItem(STORAGE_KEY, val);
+    document.getElementById("auth-gate").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    renderDashboard(data);
+  } catch (e) {
+    document.getElementById("gate-msg").textContent = "解密失败：" + e.message;
+  }
+});
+
+boot();
+</script>
+</body>
+</html>
