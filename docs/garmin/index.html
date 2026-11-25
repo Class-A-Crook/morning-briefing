@@ -4,189 +4,279 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Garmin 科学教练私密看板 v2.0</title>
+<title>Garmin 训练与生理分析</title>
 <style>
   :root {
-    --bg: #0b1120;
-    --card: #111827;
-    --card2: #1e293b;
-    --border: rgba(148, 163, 184, 0.16);
-    --txt: #f8fafc;
-    --muted: #94a3b8;
-    --accent: #38bdf8;
-    --green: #10b981;
-    --amber: #f59e0b;
-    --red: #ef4444;
-    --purple: #a855f7;
+    --bg: #f5f5f4;
+    --surface: #ffffff;
+    --surface-subtle: #fafaf9;
+    --text: #18181b;
+    --text-2: #3f3f46;
+    --muted: #71717a;
+    --line: #e4e4e7;
+    --accent: #1d4ed8;
+    --accent-soft: #eff6ff;
+    --green: #15803d;
+    --green-soft: #f0fdf4;
+    --amber: #b45309;
+    --amber-soft: #fffbeb;
+    --red: #b91c1c;
+    --red-soft: #fef2f2;
   }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0a0a0a;
+      --surface: #141416;
+      --surface-subtle: #1c1c1f;
+      --text: #f4f4f5;
+      --text-2: #d4d4d8;
+      --muted: #a1a1aa;
+      --line: #27272a;
+      --accent: #60a5fa;
+      --accent-soft: rgba(59, 130, 246, 0.14);
+      --green: #4ade80;
+      --green-soft: rgba(74, 222, 128, 0.12);
+      --amber: #fbbf24;
+      --amber-soft: rgba(251, 191, 36, 0.14);
+      --red: #f87171;
+      --red-soft: rgba(248, 113, 113, 0.14);
+    }
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Microsoft YaHei", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     background: var(--bg);
-    color: var(--txt);
-    line-height: 1.56;
-    padding-bottom: 48px;
+    color: var(--text);
+    line-height: 1.65;
+    font-size: 15px;
+    font-variant-numeric: tabular-nums;
+    padding-bottom: 56px;
+    -webkit-font-smoothing: antialiased;
   }
-  .top-hero {
-    background: linear-gradient(145deg, #0f172a 0%, #172554 55%, #0c4a6e 100%);
-    padding: calc(16px + env(safe-area-inset-top)) 16px 14px;
-    border-bottom: 1px solid var(--border);
-  }
-  .hero-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-  .hero-title { font-size: 18px; font-weight: 800; letter-spacing: 0.2px; }
-  .hero-sub { font-size: 12px; color: #bae6fd; margin-top: 3px; }
-  .lock-pill {
-    font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 999px;
-    background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(52, 211, 153, 0.35);
-    white-space: nowrap;
-  }
-  .kpi-strip {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 12px;
-  }
-  @media (min-width: 640px) { .kpi-strip { grid-template-columns: repeat(4, 1fr); } }
-  .kpi-box {
-    background: rgba(15, 23, 42, 0.65); border: 1px solid var(--border);
-    border-radius: 10px; padding: 9px 11px;
-  }
-  .kpi-lbl { font-size: 11px; color: var(--muted); }
-  .kpi-num { font-size: 17px; font-weight: 800; margin-top: 2px; color: #fff; }
-  .kpi-desc { font-size: 11px; color: #38bdf8; margin-top: 1px; }
 
-  .tabs {
+  .wrap { max-width: 760px; margin: 0 auto; }
+
+  .masthead {
+    background: var(--surface);
+    padding: calc(18px + env(safe-area-inset-top)) 18px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .mast-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .mast-title { font-size: 19px; font-weight: 700; letter-spacing: -0.2px; }
+  .mast-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+  .sec-tag {
+    font-size: 11px; font-weight: 600; color: var(--muted);
+    border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
+    margin-top: 14px;
+  }
+  @media (min-width: 640px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
+  .kpi {
+    background: var(--surface-subtle);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+  .kpi-label { font-size: 11.5px; color: var(--muted); font-weight: 500; }
+  .kpi-value { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.3px; }
+  .kpi-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+
+  .nav-bar {
     position: sticky; top: 0; z-index: 30;
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px;
-    background: rgba(11, 17, 32, 0.92); backdrop-filter: blur(12px);
-    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    background: color-mix(in srgb, var(--surface) 88%, transparent);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
+    padding: 8px 14px;
+  }
+  .nav-inner {
+    max-width: 760px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
+    background: var(--bg);
+    padding: 3px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
   }
   .tab-btn {
-    background: var(--card); color: var(--muted); border: 1px solid var(--border);
-    border-radius: 8px; padding: 7px 4px; font-size: 12px; font-weight: 700;
-    cursor: pointer; text-align: center; transition: all 0.15s;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    padding: 7px 4px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
   }
   .tab-btn.active {
-    background: #0284c7; color: #fff; border-color: #38bdf8;
-    box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   }
 
-  .container { max-width: 860px; margin: 0 auto; padding: 12px; }
+  .main { max-width: 760px; margin: 0 auto; padding: 14px; }
   .pane { display: none; }
   .pane.active { display: block; }
 
   .card {
-    background: var(--card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 14px; margin-bottom: 12px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
   }
-  .card-title {
-    font-size: 14.5px; font-weight: 800; color: var(--accent);
-    margin-bottom: 9px; display: flex; justify-content: space-between; align-items: center;
+  .card-head {
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--line);
   }
-  .badge {
-    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 6px;
+  .card-title { font-size: 14.5px; font-weight: 700; color: var(--text); letter-spacing: -0.1px; }
+  .pill {
+    font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap;
   }
-  .bg-green { background: rgba(16,185,129,0.18); color: #34d399; }
-  .bg-amber { background: rgba(245,158,11,0.2); color: #fbbf24; }
-  .bg-red { background: rgba(239,68,68,0.2); color: #f87171; }
-  .bg-blue { background: rgba(56,189,248,0.16); color: #7dd3fc; }
+  .pill-green { background: var(--green-soft); color: var(--green); }
+  .pill-amber { background: var(--amber-soft); color: var(--amber); }
+  .pill-red { background: var(--red-soft); color: var(--red); }
+  .pill-blue { background: var(--accent-soft); color: var(--accent); }
+  .pill-neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 
-  .next-workout {
-    background: linear-gradient(135deg, rgba(30,58,138,0.55), rgba(15,23,42,0.9));
-    border: 1px solid rgba(56, 189, 248, 0.35);
+  .focus-box {
+    border-left: 3px solid var(--accent);
+    padding-left: 12px;
   }
-  .shoe-tag {
-    display: inline-block; margin-top: 6px; font-size: 11.5px; font-weight: 700;
-    color: #fde68a; background: rgba(217, 119, 6, 0.22); padding: 3px 9px; border-radius: 6px;
+  .focus-name { font-size: 15.5px; font-weight: 700; color: var(--text); }
+  .focus-desc { font-size: 13.5px; color: var(--text-2); margin-top: 5px; }
+  .focus-meta { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+
+  .headline {
+    font-size: 16px; font-weight: 700; color: var(--text);
+    line-height: 1.45; margin-bottom: 12px;
   }
 
-  .chart-wrap {
-    background: #fff; border-radius: 9px; padding: 4px; margin: 8px 0; overflow: hidden;
+  .prose h1, .prose h2 {
+    font-size: 14.5px; font-weight: 700; color: var(--text);
+    margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line);
   }
-  .chart-wrap img { width: 100%; height: auto; display: block; border-radius: 6px; cursor: zoom-in; }
-  .chart-hint { font-size: 11px; color: var(--muted); text-align: center; margin-top: 4px; }
+  .prose h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin: 14px 0 6px; }
+  .prose p { margin-bottom: 9px; font-size: 14px; color: var(--text-2); }
+  .prose ul, .prose ol { padding-left: 18px; margin-bottom: 10px; }
+  .prose li { margin-bottom: 5px; font-size: 13.8px; color: var(--text-2); }
+  .prose strong { color: var(--text); font-weight: 600; }
+  .prose hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
+  .prose blockquote {
+    border-left: 3px solid var(--line); padding: 4px 12px; margin: 8px 0; color: var(--muted); font-size: 13.5px;
+  }
 
-  .md-body h1, .md-body h2, .md-body h3 { color: #7dd3fc; margin: 12px 0 6px; font-size: 14.5px; }
-  .md-body p { margin-bottom: 8px; font-size: 13.5px; color: #e2e8f0; }
-  .md-body ul, .md-body ol { padding-left: 18px; margin-bottom: 8px; }
-  .md-body li { margin-bottom: 5px; font-size: 13.3px; color: #e2e8f0; }
-  .md-body strong { color: #fff; }
-  .md-body code { background: rgba(148,163,184,0.18); padding: 1px 5px; border-radius: 4px; font-size: 12.2px; color: #bae6fd; }
-
-  .tbl-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-  table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 480px; }
-  th { background: #1e293b; color: #bae6fd; text-align: left; padding: 7px 8px; font-weight: 700; white-space: nowrap; }
-  td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: #e2e8f0; }
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 4px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 440px; }
+  th {
+    text-align: left; font-weight: 600; color: var(--muted);
+    padding: 7px 8px; border-bottom: 1.5px solid var(--line); white-space: nowrap; font-size: 11.8px;
+  }
+  td {
+    padding: 8px 8px; border-bottom: 1px solid var(--line); color: var(--text-2); vertical-align: top;
+  }
   tr:last-child td { border-bottom: none; }
+  td strong { color: var(--text); font-weight: 600; }
 
-  .dim-row { margin-bottom: 9px; }
-  .dim-head { display: flex; justify-content: space-between; font-size: 12.2px; margin-bottom: 3px; }
-  .bar-bg { height: 7px; background: #1e293b; border-radius: 99px; overflow: hidden; }
-  .bar-fill { height: 100%; border-radius: 99px; }
-
-  .sched-item {
-    border-left: 3px solid var(--accent); padding: 8px 0 8px 11px;
-    margin-bottom: 10px; background: rgba(30,41,59,0.38); border-radius: 0 8px 8px 0;
+  .chart-frame {
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 6px;
+    margin: 10px 0 4px;
   }
-  .sched-head { font-size: 13.2px; font-weight: 700; color: #fff; }
-  .sched-desc { font-size: 12px; color: #cbd5e1; margin-top: 3px; }
+  .chart-frame img { width: 100%; height: auto; display: block; border-radius: 6px; cursor: zoom-in; }
+  .chart-cap { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
+
+  .dim-item { margin-bottom: 11px; }
+  .dim-item:last-child { margin-bottom: 0; }
+  .dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 4px; gap: 8px; }
+  .dim-name { font-weight: 600; color: var(--text); }
+  .dim-detail { font-size: 12px; color: var(--muted); }
+  .dim-score { font-weight: 700; color: var(--text); white-space: nowrap; }
+  .track { height: 5px; background: var(--bg); border-radius: 99px; overflow: hidden; }
+  .fill { height: 100%; border-radius: 99px; }
+
+  .sched-row {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sched-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .sched-row:first-child { padding-top: 0; }
+  .sched-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .sched-title { font-size: 13.8px; font-weight: 700; color: var(--text); }
+  .sched-date { font-size: 12px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .sched-desc { font-size: 12.8px; color: var(--text-2); margin-top: 3px; }
+  .sched-foot { font-size: 11.8px; color: var(--muted); margin-top: 4px; }
 
   #auth-gate {
-    max-width: 420px; margin: 70px auto; padding: 22px; text-align: center;
+    max-width: 400px; margin: 72px auto; padding: 24px; text-align: center;
   }
   #auth-gate input {
-    width: 100%; padding: 11px; border-radius: 8px; border: 1px solid var(--border);
-    background: var(--card2); color: #fff; font-size: 13px; margin: 12px 0;
+    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--surface-subtle); color: var(--text); font-size: 13.5px; margin: 14px 0 10px;
   }
   #auth-gate button {
-    width: 100%; padding: 11px; border-radius: 8px; border: none;
-    background: #0284c7; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+    width: 100%; padding: 10px; border-radius: 8px; border: none;
+    background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
   }
   #lightbox {
     display: none; position: fixed; inset: 0; z-index: 100;
-    background: rgba(0,0,0,0.93); align-items: center; justify-content: center; padding: 8px;
+    background: rgba(0, 0, 0, 0.92); align-items: center; justify-content: center; padding: 10px;
   }
   #lightbox.open { display: flex; }
-  #lightbox img { max-width: 100%; max-height: 94vh; object-fit: contain; border-radius: 6px; }
+  #lightbox img { max-width: 100%; max-height: 94vh; object-fit: contain; border-radius: 6px; background: #fff; }
 </style>
 </head>
 <body>
 
 <div id="auth-gate" class="card" style="display:none;">
-  <div style="font-size:32px;margin-bottom:8px;">🔐</div>
-  <div style="font-size:16px;font-weight:800;margin-bottom:6px;">AES-256-GCM 端到端加密看板</div>
-  <div id="gate-msg" style="font-size:12.5px;color:var(--muted);">请从 iPhone Bark 推送通知直接点击进入（自动携带 #k= 密钥且永不上传服务器），或在此粘贴您的私密密钥：</div>
-  <input id="key-input" type="password" placeholder="粘贴 DASHBOARD_SECRET_KEY..." autocomplete="off">
-  <button id="unlock-btn">本地解密并打开</button>
+  <div style="font-size:17px;font-weight:700;margin-bottom:6px;">私密训练看板验证</div>
+  <div id="gate-msg" style="font-size:13px;color:var(--muted);">请从 Bark 通知直达链接进入，或输入本地解密密钥：</div>
+  <input id="key-input" type="password" placeholder="DASHBOARD_SECRET_KEY" autocomplete="off">
+  <button id="unlock-btn">本地解密打开</button>
 </div>
 
 <div id="app" style="display:none;">
-  <div class="top-hero">
-    <div class="hero-row">
-      <div>
-        <div class="hero-title">🏃 Garmin 全距离科学教练 v2.0</div>
-        <div class="hero-sub" id="sync-sub">正在解密最新运动生理数据...</div>
+  <header class="masthead">
+    <div class="wrap">
+      <div class="mast-top">
+        <div>
+          <div class="mast-title">Garmin 训练与生理简报</div>
+          <div class="mast-meta" id="sync-sub">同步加载中...</div>
+        </div>
+        <span class="sec-tag">端到端加密</span>
       </div>
-      <div class="lock-pill">🔒 AES-256 本地已解密</div>
+      <div class="kpi-grid" id="kpi-grid"></div>
     </div>
-    <div class="kpi-strip" id="kpi-strip"></div>
-  </div>
+  </header>
 
-  <div class="tabs">
-    <button class="tab-btn active" data-tab="p-coach">🧠 主教练</button>
-    <button class="tab-btn" data-tab="p-hrv">💓 HRV/心率恢复</button>
-    <button class="tab-btn" data-tab="p-dist">🚀 全距离/雷达</button>
-    <button class="tab-btn" data-tab="p-plan">📅 课表/跑鞋</button>
-  </div>
+  <nav class="nav-bar">
+    <div class="nav-inner">
+      <button class="tab-btn active" data-tab="p-coach">教练复盘</button>
+      <button class="tab-btn" data-tab="p-hrv">HRV与恢复</button>
+      <button class="tab-btn" data-tab="p-dist">能力与雷达</button>
+      <button class="tab-btn" data-tab="p-plan">课表与跑鞋</button>
+    </div>
+  </nav>
 
-  <div class="container">
+  <main class="main">
     <div id="p-coach" class="pane active"></div>
     <div id="p-hrv" class="pane"></div>
     <div id="p-dist" class="pane"></div>
     <div id="p-plan" class="pane"></div>
-  </div>
+  </main>
 </div>
 
 <div id="lightbox" onclick="this.classList.remove('open')">
-  <img id="lb-img" src="" alt="zoomed chart">
+  <img id="lb-img" src="" alt="图表放大预览">
 </div>
 
 <script>
@@ -205,34 +295,95 @@ function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
 
-function renderMarkdown(md) {
-  if (!md) return "<p>暂无长文分析</p>";
-  const lines = md.split(/\r?\n/);
-  let html = "", inList = false;
-  const fmtInline = t => esc(t)
+function stripLatex(txt) {
+  return String(txt || "")
+    .replace(/\$\$([\s\S]*?)\$\$/g, "")
+    .replace(/\$([^$]+)\$/g, (_, inner) =>
+      inner
+        .replace(/\\text\{([^}]*)\}/g, "$1")
+        .replace(/\\times/g, "×")
+        .replace(/\\max/g, "max")
+        .replace(/\\exp/g, "exp")
+        .replace(/R\^2/g, "R²")
+        .replace(/[{}]/g, "")
+        .trim()
+    );
+}
+
+function fmtInline(t) {
+  let clean = stripLatex(t);
+  return esc(clean)
     .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "<code>$1</code>");
-  for (const raw of lines) {
-    const l = raw.trim();
-    if (!l) { if (inList) { html += "</ul>"; inList = false; } continue; }
-    if (l.startsWith("### ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h3>${fmtInline(l.slice(4))}</h3>`; }
-    else if (l.startsWith("## ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h2>${fmtInline(l.slice(3))}</h2>`; }
-    else if (l.startsWith("# ")) { if (inList) { html += "</ul>"; inList = false; } html += `<h1>${fmtInline(l.slice(2))}</h1>`; }
+    .replace(/`([^`]+)`/g, "$1");
+}
+
+function renderMarkdown(md) {
+  if (!md) return "<p>暂无分析内容</p>";
+  const lines = stripLatex(md).split(/\r?\n/);
+  let html = "";
+  let inUl = false;
+  let inOl = false;
+
+  const closeLists = () => {
+    if (inUl) { html += "</ul>"; inUl = false; }
+    if (inOl) { html += "</ol>"; inOl = false; }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i].trim();
+    if (!l) { closeLists(); continue; }
+
+    if (/^[-*_]{3,}$/.test(l)) {
+      closeLists();
+      html += "<hr>";
+      continue;
+    }
+
+    // Markdown table block
+    if (l.startsWith("|") && i + 1 < lines.length && /^\|[\s:|-]+\|/.test(lines[i + 1].trim())) {
+      closeLists();
+      const parseRow = r => r.replace(/^\||\|$/g, "").split("|").map(c => c.trim());
+      const headers = parseRow(l);
+      i += 2; // skip header + separator
+      let rows = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        rows.push(parseRow(lines[i].trim()));
+        i++;
+      }
+      i--;
+      html += `<div class="tbl-wrap"><table><thead><tr>${headers.map(h => `<th>${fmtInline(h)}</th>`).join("")}</tr></thead><tbody>`;
+      for (const row of rows) {
+        html += `<tr>${row.map(c => `<td>${fmtInline(c)}</td>`).join("")}</tr>`;
+      }
+      html += "</tbody></table></div>";
+      continue;
+    }
+
+    if (l.startsWith("#### ")) { closeLists(); html += `<h3>${fmtInline(l.slice(5))}</h3>`; }
+    else if (l.startsWith("### ")) { closeLists(); html += `<h3>${fmtInline(l.slice(4))}</h3>`; }
+    else if (l.startsWith("## ")) { closeLists(); html += `<h2>${fmtInline(l.slice(3))}</h2>`; }
+    else if (l.startsWith("# ")) { closeLists(); html += `<h1>${fmtInline(l.slice(2))}</h1>`; }
+    else if (l.startsWith("> ")) { closeLists(); html += `<blockquote>${fmtInline(l.slice(2))}</blockquote>`; }
     else if (/^[-*▸•]\s+/.test(l)) {
-      if (!inList) { html += "<ul>"; inList = true; }
+      if (inOl) { html += "</ol>"; inOl = false; }
+      if (!inUl) { html += "<ul>"; inUl = true; }
       html += `<li>${fmtInline(l.replace(/^[-*▸•]\s+/, ""))}</li>`;
+    } else if (/^\d+\.\s+/.test(l)) {
+      if (inUl) { html += "</ul>"; inUl = false; }
+      if (!inOl) { html += "<ol>"; inOl = true; }
+      html += `<li>${fmtInline(l.replace(/^\d+\.\s+/, ""))}</li>`;
     } else {
-      if (inList) { html += "</ul>"; inList = false; }
+      closeLists();
       html += `<p>${fmtInline(l)}</p>`;
     }
   }
-  if (inList) html += "</ul>";
+  closeLists();
   return html;
 }
 
 function chartBlock(b64, caption) {
   if (!b64) return "";
-  return `<div class="chart-wrap"><img src="${b64}" onclick="zoomImg(this.src)" alt="${esc(caption)}"></div><div class="chart-hint">🔍 点击图表全屏双指缩放 · ${esc(caption)}</div>`;
+  return `<div class="chart-frame"><img src="${b64}" onclick="zoomImg(this.src)" alt="${esc(caption)}"></div><div class="chart-cap">${esc(caption)}（点击可放大查看）</div>`;
 }
 
 function zoomImg(src) {
@@ -243,43 +394,69 @@ function zoomImg(src) {
 function renderDashboard(d) {
   const k = d.kpis || {};
   const rad = d.injury_radar || {};
-  const radCls = rad.level === "GREEN" ? "bg-green" : (rad.level === "YELLOW" ? "bg-amber" : "bg-red");
-  document.getElementById("sync-sub").textContent = `最新同步：${d.generated_at || "-"} · 累计 ${k.total_runs || 0} 跑 / ${k.total_km || 0} km`;
+  const radCls = rad.level === "GREEN" ? "pill-green" : (rad.level === "YELLOW" ? "pill-amber" : "pill-red");
+  const radTxt = rad.level === "GREEN" ? "安全" : (rad.level === "YELLOW" ? "注意" : "高危");
 
-  document.getElementById("kpi-strip").innerHTML = `
-    <div class="kpi-box"><div class="kpi-lbl">VO₂Max / 1000m锚点</div><div class="kpi-num">${esc(k.vo2max)} <span style="font-size:13px;color:#38bdf8;">｜${esc(k.tt_1000m)}</span></div><div class="kpi-desc">高速无氧储备充沛</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">乳酸阈值 LT / FTP</div><div class="kpi-num">${esc(k.lt_pace)}</div><div class="kpi-desc">${esc(k.lt_hr)} bpm · ${esc(k.ftp_w)} W</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">全天候 HRV (夜 / 日)</div><div class="kpi-num">${esc(k.hrv_night ?? "-")} <span style="font-size:13px;color:#34d399;">/ ${esc(k.hrv_day_est ?? "-")} ms</span></div><div class="kpi-desc">RHR ${esc(k.rhr ?? "-")} bpm · 电量 ${esc(k.bb_now ?? k.bb_high ?? "-")}</div></div>
-    <div class="kpi-box"><div class="kpi-lbl">隐性疲劳伤病雷达</div><div class="kpi-num">${esc(rad.risk_score_100 ?? "-")}/100</div><div class="kpi-desc"><span class="badge ${radCls}">${esc(rad.level || "GREEN")}</span></div></div>
-  `;
+  document.getElementById("sync-sub").textContent =
+    `更新于 ${(d.generated_at || "").slice(0, 16)} · 累计 ${k.total_runs || 0} 次 / ${k.total_km || 0} km`;
 
-  // Tab 1: Coach & Overview
+  document.getElementById("kpi-grid").innerHTML = `
+    <div class="kpi">
+      <div class="kpi-label">VO₂Max / 1000m</div>
+      <div class="kpi-value">${esc(k.vo2max)} · ${esc(k.tt_1000m)}</div>
+      <div class="kpi-sub">无氧速度储备充沛</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">乳酸阈值</div>
+      <div class="kpi-value">${esc(k.lt_pace)}</div>
+      <div class="kpi-sub">${esc(k.lt_hr)} bpm · ${esc(k.ftp_w)} W</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">全天候 HRV (夜 / 日)</div>
+      <div class="kpi-value">${esc(k.hrv_night ?? "-")} / ${esc(k.hrv_day_est ?? "-")} ms</div>
+      <div class="kpi-sub">静息 ${esc(k.rhr ?? "-")} bpm · 电量 ${esc(k.bb_now ?? k.bb_high ?? "-")}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">伤病风险雷达</div>
+      <div class="kpi-value">${esc(rad.risk_score_100 ?? "-")} / 100</div>
+      <div class="kpi-sub"><span class="pill ${radCls}">${radTxt}</span></div>
+    </div>`;
+
+  // Tab 1: Coach
   const nxt = (d.upcoming_schedule || [])[0];
   const ai = d.ai_coach || {};
   let coachHtml = "";
   if (nxt) {
     coachHtml += `
-      <div class="card next-workout">
-        <div class="card-title"><span>🎯 下一节待执行课表（已同步手表）</span><span class="badge bg-blue">${esc(nxt.date)} ${esc(nxt.weekday)}</span></div>
-        <div style="font-size:15.5px;font-weight:800;color:#fff;">${esc(nxt.name)}</div>
-        <div style="font-size:12.8px;color:#dbeafe;margin-top:5px;">${esc(nxt.description)}</div>
-        <div class="shoe-tag">👟 推荐战靴：${esc(nxt.shoe)} · 预计 ${esc(nxt.dist_km)} km</div>
+      <div class="card">
+        <div class="card-head">
+          <span class="card-title">下一节待执行课表</span>
+          <span class="pill pill-blue">${esc(nxt.date)} ${esc(nxt.weekday)}</span>
+        </div>
+        <div class="focus-box">
+          <div class="focus-name">${esc(nxt.name)}</div>
+          <div class="focus-desc">${esc(nxt.description)}</div>
+          <div class="focus-meta">建议用鞋：${esc(nxt.shoe)} · 预计里程 ${esc(nxt.dist_km)} km</div>
+        </div>
       </div>`;
   }
   coachHtml += `
     <div class="card">
-      <div class="card-title"><span>🧠 AI 主教练深度诊断</span><span class="badge bg-green">${esc(ai.model_used || "v2.0 Engine")}</span></div>
-      ${ai.headline ? `<div style="font-size:15px;font-weight:800;color:#fde68a;margin-bottom:10px;">「${esc(ai.headline)}」</div>` : ""}
-      <div class="md-body">${renderMarkdown(ai.full_markdown || ai.bark_body)}</div>
+      <div class="card-head">
+        <span class="card-title">AI 教练深度诊断</span>
+        <span class="pill pill-neutral">${esc((ai.date || "").slice(5))}</span>
+      </div>
+      ${ai.headline ? `<div class="headline">${esc(ai.headline)}</div>` : ""}
+      <div class="prose">${renderMarkdown(ai.full_markdown || ai.bark_body)}</div>
     </div>
     <div class="card">
-      <div class="card-title"><span>📈 纵向跑量与有氧效率全景</span></div>
-      ${chartBlock(d.charts?.pdf_overview, "每周跑量负荷与单次配速轨迹")}
-      ${chartBlock(d.charts?.pdf_ef, "有氧效率系数 EF 与心率-配速曲线上移")}
+      <div class="card-head"><span class="card-title">训练量与有氧效率走势</span></div>
+      ${chartBlock(d.charts?.pdf_overview, "周跑量负荷演进与单次配速轨迹")}
+      ${chartBlock(d.charts?.pdf_ef, "有氧效率系数 EF 与心率-配速效率上移")}
     </div>`;
   document.getElementById("p-coach").innerHTML = coachHtml;
 
-  // Tab 2: 24h HRV + Post-Workout HRR
+  // Tab 2: HRV & HRR
   const h24 = d.hrv_24h_meta || {};
   const hrr = d.hrr_analysis || {};
   const hrrRows = (hrr.history || []).slice().reverse().map(r => `
@@ -287,95 +464,113 @@ function renderDashboard(d) {
       <td>${esc(r.date?.slice(5))}</td>
       <td>${esc((r.name || "").slice(0, 12))}</td>
       <td>${esc(r.stop_hr ?? "-")}</td>
-      <td><strong style="color:#38bdf8;">${r.drop_2m != null ? "-" + r.drop_2m + " bpm" : "-"}</strong></td>
-      <td>${r.drop_5m != null ? "-" + r.drop_5m + " bpm" : "-"}</td>
-      <td>${r.drop_10m != null ? "-" + r.drop_10m + " bpm" : "-"}</td>
-      <td><strong style="color:#34d399;">${r.rel_recovery_2m_pct != null ? r.rel_recovery_2m_pct + "%" : "-"}</strong></td>
+      <td><strong>${r.drop_2m != null ? "-" + r.drop_2m : "-"}</strong></td>
+      <td>${r.drop_5m != null ? "-" + r.drop_5m : "-"}</td>
+      <td>${r.rel_recovery_2m_pct != null ? r.rel_recovery_2m_pct + "%" : "-"}</td>
     </tr>`).join("");
+
   document.getElementById("p-hrv").innerHTML = `
     <div class="card">
-      <div class="card-title"><span>💓 近36h连续HRV还原与身体电量耦合</span><span class="badge bg-blue">R²=${esc(h24.r2_log_space)}</span></div>
-      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:6px;">
-        佳明白天将自主神经波动编码为「压力与身体电量」。系统利用你 <strong>${esc(h24.paired_sample_count)}</strong> 组个人夜间实测 RMSSD 与日间健康快照实测锚点，训练专属生理模型 <code>${esc(h24.model_formula)}</code>，精准还原日间毫秒级等效 HRV！
+      <div class="card-head">
+        <span class="card-title">近 36 小时全天候 HRV 与身体电量</span>
+        <span class="pill pill-blue">夜 ${esc(h24.nocturnal_measured_avg_ms)} / 日 ${esc(h24.daytime_calibrated_avg_ms)} ms</span>
       </div>
-      ${chartBlock(d.charts?.sci_24h_hrv_bb, "夜间实测 5min RMSSD + 日间校准还原 HRV + 身体电量双轴曲线")}
+      <div class="prose" style="margin-bottom:6px;">
+        <p>结合 ${esc(h24.paired_sample_count)} 组夜间实测 RMSSD 与日间健康快照锚点，将白天的压力与心率变化还原为连续 HRV 曲线，并与身体电量同图对照。</p>
+      </div>
+      ${chartBlock(d.charts?.sci_24h_hrv_bb, "夜间实测 5min HRV、日间还原 HRV 与身体电量双轴曲线")}
     </div>
     <div class="card">
-      <div class="card-title"><span>⚡ 跑后心率恢复速度 (HRR) 追踪</span><span class="badge bg-green">基线 -${esc(hrr.baseline_drop_2m_bpm)} bpm</span></div>
-      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:6px;">副交感神经评定：<strong>${esc(hrr.parasympathetic_grade)}</strong></div>
-      ${chartBlock(d.charts?.sci_hrr_trend, "停表后 0~15 分钟心率回落曲线与储备恢复效率演变")}
-      <div class="tbl-scroll" style="margin-top:10px;">
+      <div class="card-head">
+        <span class="card-title">跑后心率恢复速度 (HRR)</span>
+        <span class="pill pill-green">2.5分基线降 ${esc(hrr.baseline_drop_2m_bpm)} bpm</span>
+      </div>
+      <div class="prose" style="margin-bottom:4px;"><p>当前评定：<strong>${esc(hrr.parasympathetic_grade)}</strong></p></div>
+      ${chartBlock(d.charts?.sci_hrr_trend, "停表后 0–15 分钟心率下降曲线与储备心率恢复率")}
+      <div class="tbl-wrap" style="margin-top:8px;">
         <table>
-          <thead><tr><th>日期</th><th>课表</th><th>停表HR</th><th>+2.5m降幅</th><th>+5m降幅</th><th>+10m降幅</th><th>储备恢复率</th></tr></thead>
+          <thead><tr><th>日期</th><th>训练课表</th><th>停表HR</th><th>+2.5m降幅</th><th>+5m降幅</th><th>恢复率</th></tr></thead>
           <tbody>${hrrRows}</tbody>
         </table>
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><span>😴 静息心率、夜间HRV与睡眠分期</span></div>
-      ${chartBlock(d.charts?.pdf_wellness, "静息心率 RHR、夜间 HRV 与深睡/REM 结构")}
+      <div class="card-head"><span class="card-title">静息心率、夜间 HRV 与睡眠分期</span></div>
+      ${chartBlock(d.charts?.pdf_wellness, "静息心率 RHR、夜间 HRV 与睡眠结构")}
     </div>`;
 
-  // Tab 3: All-Distance Predictor & Injury Radar
+  // Tab 3: All-Distance & Radar
   const dp = d.all_distance_profile || {};
   const predRows = (dp.all_distance_predictions || []).map(p => `
     <tr>
       <td><strong>${esc(p.distance)}</strong></td>
-      <td><strong>${esc(p.current_time)}</strong> <span style="color:var(--muted);">(${esc(p.current_pace)})</span></td>
-      <td style="color:#38bdf8;">${esc(p.target_4w_time)} (${esc(p.target_4w_pace)})</td>
-      <td style="color:#34d399;font-weight:700;">${esc(p.target_8w_time)} (${esc(p.target_8w_pace)})</td>
+      <td><strong>${esc(p.current_time)}</strong> (${esc(p.current_pace)})</td>
+      <td>${esc(p.target_4w_time)} (${esc(p.target_4w_pace)})</td>
+      <td><strong style="color:var(--green);">${esc(p.target_8w_time)}</strong> (${esc(p.target_8w_pace)})</td>
     </tr>`).join("");
   const dimBars = (rad.dimensions || []).map(dm => {
     const pct = Math.min(100, (dm.score_20 / 20) * 100);
-    const col = dm.score_20 < 8 ? "#10b981" : (dm.score_20 <= 13 ? "#f59e0b" : "#ef4444");
-    return `<div class="dim-row">
-      <div class="dim-head"><span><strong>${esc(dm.name)}</strong> · <span style="color:var(--muted);">${esc(dm.detail)}</span></span><span>${esc(dm.score_20)}/20</span></div>
-      <div class="bar-bg"><div class="bar-fill" style="width:${pct}%;background:${col};"></div></div>
+    const col = dm.score_20 < 8 ? "#16a34a" : (dm.score_20 <= 13 ? "#d97706" : "#dc2626");
+    return `<div class="dim-item">
+      <div class="dim-top">
+        <div><span class="dim-name">${esc(dm.name)}</span> · <span class="dim-detail">${esc(dm.detail)}</span></div>
+        <div class="dim-score">${esc(dm.score_20)} / 20</div>
+      </div>
+      <div class="track"><div class="fill" style="width:${pct}%;background:${col};"></div></div>
     </div>`;
   }).join("");
   const zoneRows = Object.values(dp.training_zones || {}).map(z => `
-    <tr><td><strong>${esc(z.name)}</strong></td><td style="color:#38bdf8;font-weight:700;">${esc(z.pace_range)}</td><td>${esc(z.hr_range)}</td><td>${esc(z.power_range)}</td></tr>
+    <tr><td><strong>${esc(z.name)}</strong></td><td><strong>${esc(z.pace_range)}</strong></td><td>${esc(z.hr_range)}</td><td>${esc(z.power_range)}</td></tr>
   `).join("");
 
   document.getElementById("p-dist").innerHTML = `
     <div class="card">
-      <div class="card-title"><span>🚀 全距离速度-耐力模型与伤病雷达</span><span class="badge bg-blue">b=${esc(dp.endurance_decay_exponent_b)}</span></div>
-      <div style="font-size:12.4px;color:#cbd5e1;margin-bottom:8px;">${esc(dp.phenotype_diagnosis)}</div>
-      ${chartBlock(d.charts?.sci_speed_radar, "全距离 400m~半马进阶曲线与五维隐性伤病风险雷达")}
-      <div class="tbl-scroll" style="margin-top:10px;">
+      <div class="card-head">
+        <span class="card-title">全距离段能力评估与进阶目标</span>
+        <span class="pill pill-neutral">衰减指数 ${esc(dp.endurance_decay_exponent_b)}</span>
+      </div>
+      <div class="prose"><p>${esc(dp.phenotype_diagnosis)}</p></div>
+      ${chartBlock(d.charts?.sci_speed_radar, "400m–半马速度耐力曲线与五维伤病风险雷达")}
+      <div class="tbl-wrap" style="margin-top:8px;">
         <table>
-          <thead><tr><th>距离项目</th><th>当前能力评估</th><th>4 周进阶目标</th><th>8 周进阶目标</th></tr></thead>
+          <thead><tr><th>距离</th><th>当前能力</th><th>4 周目标</th><th>8 周目标</th></tr></thead>
           <tbody>${predRows}</tbody>
         </table>
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><span>🛡️ 五维隐性疲劳与伤病风险拆解</span><span class="badge ${radCls}">${esc(rad.risk_score_100)}/100</span></div>
-      <div style="font-size:12.3px;color:#cbd5e1;margin-bottom:10px;">${esc(rad.summary_badge)}</div>
+      <div class="card-head">
+        <span class="card-title">隐性疲劳与伤病风险拆解</span>
+        <span class="pill ${radCls}">${esc(rad.risk_score_100)} / 100</span>
+      </div>
+      <div class="prose" style="margin-bottom:10px;"><p>${esc(rad.summary_badge)}</p></div>
       ${dimBars}
     </div>
     <div class="card">
-      <div class="card-title"><span>🎯 动态 E / M / T / I / R 训练五区间</span></div>
-      <div class="tbl-scroll">
+      <div class="card-head"><span class="card-title">动态五区间参考标准</span></div>
+      <div class="tbl-wrap">
         <table>
-          <thead><tr><th>训练区间</th><th>目标配速</th><th>控制心率</th><th>目标功率</th></tr></thead>
+          <thead><tr><th>区间</th><th>目标配速</th><th>心率范围</th><th>功率范围</th></tr></thead>
           <tbody>${zoneRows}</tbody>
         </table>
       </div>
     </div>`;
 
-  // Tab 4: Rolling Schedule, Shoes & Recent Runs
+  // Tab 4: Schedule & Gear
   const schedItems = (d.upcoming_schedule || []).map(s => `
-    <div class="sched-item">
-      <div class="sched-head">${esc(s.date)} (${esc(s.weekday)}) · ${esc(s.name)}</div>
+    <div class="sched-row">
+      <div class="sched-top">
+        <span class="sched-title">${esc(s.name)}</span>
+        <span class="sched-date">${esc(s.date.slice(5))} ${esc(s.weekday)}</span>
+      </div>
       <div class="sched-desc">${esc(s.description)}</div>
-      <div style="font-size:11.3px;color:#fde68a;margin-top:3px;">👟 ${esc(s.shoe)} · ${esc(s.dist_km)} km</div>
+      <div class="sched-foot">${esc(s.shoe)} · 预计 ${esc(s.dist_km)} km</div>
     </div>`).join("");
   const shoeRows = ((d.shoe_gear_matrix || {}).shoes || []).map(sh => `
     <tr>
       <td><strong>${esc(sh.name)}</strong></td>
       <td>${esc(sh.runs)} 次</td>
-      <td><strong>${esc(sh.total_km)}</strong>/${esc(sh.max_km)} km (${esc(sh.remaining_life_pct)}%)</td>
+      <td><strong>${esc(sh.total_km)}</strong> / ${esc(sh.max_km)} km (${esc(sh.remaining_life_pct)}%)</td>
       <td>${esc(sh.avg_pace)}</td>
       <td>${esc(sh.avg_gct_ms ?? "-")} ms</td>
     </tr>`).join("");
@@ -386,33 +581,36 @@ function renderDashboard(d) {
       <td>${esc(r.dist_km)}k</td>
       <td><strong>${esc(r.pace)}</strong></td>
       <td>${esc(r.avg_hr ?? "-")}</td>
-      <td style="color:#38bdf8;">${esc(r.ef_adj ?? "-")}</td>
-      <td style="color:#34d399;">${r.hrr_2m != null ? "-" + r.hrr_2m : "-"}</td>
+      <td>${esc(r.ef_adj ?? "-")}</td>
+      <td>${r.hrr_2m != null ? "-" + r.hrr_2m : "-"}</td>
       <td>${esc(r.shoe)}</td>
     </tr>`).join("");
 
   document.getElementById("p-plan").innerHTML = `
     <div class="card">
-      <div class="card-title"><span>📅 已 1:1 同步手表的滚动高阶课表</span><span class="badge bg-green">${(d.upcoming_schedule || []).length} 节待执行</span></div>
+      <div class="card-head">
+        <span class="card-title">已同步手表的滚动课表</span>
+        <span class="pill pill-green">${(d.upcoming_schedule || []).length} 节待执行</span>
+      </div>
       ${schedItems || "<p>暂无待执行课表</p>"}
     </div>
     <div class="card">
-      <div class="card-title"><span>👟 跑鞋寿命与碳板生物力学矩阵</span></div>
-      <div style="font-size:12px;color:#cbd5e1;margin-bottom:8px;">${esc(d.shoe_gear_matrix?.coach_shoe_rule)}</div>
-      <div class="tbl-scroll">
+      <div class="card-head"><span class="card-title">跑鞋寿命与轮换策略</span></div>
+      <div class="prose" style="margin-bottom:8px;"><p>${esc(d.shoe_gear_matrix?.coach_shoe_rule)}</p></div>
+      <div class="tbl-wrap">
         <table>
-          <thead><tr><th>跑鞋名称</th><th>次数</th><th>里程 / 寿命余量</th><th>均配速</th><th>平均触地</th></tr></thead>
+          <thead><tr><th>跑鞋</th><th>次数</th><th>里程与寿命余量</th><th>均配速</th><th>平均触地</th></tr></thead>
           <tbody>${shoeRows}</tbody>
         </table>
       </div>
     </div>
     <div class="card">
-      <div class="card-title"><span>🏃 跑姿动力学与近期 15 次跑步记录</span></div>
-      ${chartBlock(d.charts?.pdf_biomech, "全速域步频×步幅前沿面与触地时间演进")}
-      ${chartBlock(d.charts?.pdf_splits, "重点课分段解剖与有氧解耦率")}
-      <div class="tbl-scroll" style="margin-top:10px;">
+      <div class="card-head"><span class="card-title">跑姿动力学与近期跑步明细</span></div>
+      ${chartBlock(d.charts?.pdf_biomech, "步频×步幅等配速前沿面与触地时间走势")}
+      ${chartBlock(d.charts?.pdf_splits, "重点课表分段解剖与有氧解耦率")}
+      <div class="tbl-wrap" style="margin-top:8px;">
         <table>
-          <thead><tr><th>日期</th><th>名称</th><th>距离</th><th>配速</th><th>均HR</th><th>校准EF</th><th>2m降HR</th><th>跑鞋</th></tr></thead>
+          <thead><tr><th>日期</th><th>名称</th><th>距离</th><th>配速</th><th>均HR</th><th>校准EF</th><th>2.5m降</th><th>跑鞋</th></tr></thead>
           <tbody>${runRows}</tbody>
         </table>
       </div>
@@ -421,14 +619,13 @@ function renderDashboard(d) {
 
 async function tryDecrypt(keyStr) {
   const keyBytes = b64urlToBytes(keyStr.trim());
-  if (keyBytes.length !== 32) throw new Error("密钥长度无效（需 256-bit base64url）");
+  if (keyBytes.length !== 32) throw new Error("密钥长度无效");
   const resp = await fetch("./payload.enc.json?t=" + Date.now(), { cache: "no-store" });
-  if (!resp.ok) throw new Error("密文加载失败 HTTP " + resp.status);
+  if (!resp.ok) throw new Error("数据加载失败 HTTP " + resp.status);
   const enc = await resp.json();
   const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
   const plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64urlToBytes(enc.iv) }, cryptoKey, b64urlToBytes(enc.ct));
-  const jsonText = new TextDecoder("utf-8").decode(plainBuf);
-  return JSON.parse(jsonText);
+  return JSON.parse(new TextDecoder("utf-8").decode(plainBuf));
 }
 
 async function boot() {
@@ -454,8 +651,7 @@ async function boot() {
       renderDashboard(data);
       return;
     } catch (e) {
-      console.warn("Auto-decrypt failed:", e);
-      document.getElementById("gate-msg").textContent = "解密失败（密钥不匹配或密文更新中）：" + e.message;
+      document.getElementById("gate-msg").textContent = "解密失败：" + e.message;
     }
   }
   document.getElementById("auth-gate").style.display = "block";
