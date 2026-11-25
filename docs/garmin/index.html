@@ -252,7 +252,6 @@
           <div class="mast-title">Garmin 训练与生理简报</div>
           <div class="mast-meta" id="sync-sub">同步加载中...</div>
         </div>
-        <span class="sec-tag">端到端加密</span>
       </div>
       <div class="kpi-grid" id="kpi-grid"></div>
     </div>
@@ -394,22 +393,26 @@ function zoomImg(src) {
 function renderDashboard(d) {
   const k = d.kpis || {};
   const rad = d.injury_radar || {};
+  const ins = d.section_insights || {};
+  const lt = d.lt_analysis || {};
   const radCls = rad.level === "GREEN" ? "pill-green" : (rad.level === "YELLOW" ? "pill-amber" : "pill-red");
   const radTxt = rad.level === "GREEN" ? "安全" : (rad.level === "YELLOW" ? "注意" : "高危");
+  const vo2Delta = Number(k.vo2_delta || 0);
+  const vo2Sub = vo2Delta > 0 ? `较初期 +${vo2Delta.toFixed(1)} · 持续提升` : "有氧摄氧能力基准";
 
   document.getElementById("sync-sub").textContent =
     `更新于 ${(d.generated_at || "").slice(0, 16)} · 累计 ${k.total_runs || 0} 次 / ${k.total_km || 0} km`;
 
   document.getElementById("kpi-grid").innerHTML = `
     <div class="kpi">
-      <div class="kpi-label">VO₂Max / 1000m</div>
-      <div class="kpi-value">${esc(k.vo2max)} · ${esc(k.tt_1000m)}</div>
-      <div class="kpi-sub">无氧速度储备充沛</div>
+      <div class="kpi-label">最大摄氧量 VO₂Max</div>
+      <div class="kpi-value">${esc(k.vo2max)}</div>
+      <div class="kpi-sub">${esc(vo2Sub)}</div>
     </div>
     <div class="kpi">
-      <div class="kpi-label">乳酸阈值</div>
+      <div class="kpi-label">有效乳酸阈值</div>
       <div class="kpi-value">${esc(k.lt_pace)}</div>
-      <div class="kpi-sub">${esc(k.lt_hr)} bpm · ${esc(k.ftp_w)} W</div>
+      <div class="kpi-sub">${esc(lt.model_lt_hr ?? k.lt_hr)} bpm · ${esc(lt.model_ftp_w ?? k.ftp_w)} W</div>
     </div>
     <div class="kpi">
       <div class="kpi-label">全天候 HRV (夜 / 日)</div>
@@ -443,14 +446,15 @@ function renderDashboard(d) {
   coachHtml += `
     <div class="card">
       <div class="card-head">
-        <span class="card-title">AI 教练深度诊断</span>
-        <span class="pill pill-neutral">${esc((ai.date || "").slice(5))}</span>
+        <span class="card-title">主教练深度诊断</span>
+        <span class="pill pill-neutral">${esc((ai.date || "").slice(5) || "今日")}</span>
       </div>
       ${ai.headline ? `<div class="headline">${esc(ai.headline)}</div>` : ""}
       <div class="prose">${renderMarkdown(ai.full_markdown || ai.bark_body)}</div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">训练量与有氧效率走势</span></div>
+      <div class="card-head"><span class="card-title">训练负荷与有氧效率走势</span></div>
+      ${ins.volume_and_ef ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.volume_and_ef)}</p></div>` : ""}
       ${chartBlock(d.charts?.pdf_overview, "周跑量负荷演进与单次配速轨迹")}
       ${chartBlock(d.charts?.pdf_ef, "有氧效率系数 EF 与心率-配速效率上移")}
     </div>`;
@@ -475,8 +479,8 @@ function renderDashboard(d) {
         <span class="card-title">近 36 小时全天候 HRV 与身体电量</span>
         <span class="pill pill-blue">夜 ${esc(h24.nocturnal_measured_avg_ms)} / 日 ${esc(h24.daytime_calibrated_avg_ms)} ms</span>
       </div>
-      <div class="prose" style="margin-bottom:6px;">
-        <p>结合 ${esc(h24.paired_sample_count)} 组夜间实测 RMSSD 与日间健康快照锚点，将白天的压力与心率变化还原为连续 HRV 曲线，并与身体电量同图对照。</p>
+      <div class="prose" style="margin-bottom:8px;">
+        <p>${esc(ins.hrv_36h || "")}</p>
       </div>
       ${chartBlock(d.charts?.sci_24h_hrv_bb, "夜间实测 5min HRV、日间还原 HRV 与身体电量双轴曲线")}
     </div>
@@ -485,7 +489,7 @@ function renderDashboard(d) {
         <span class="card-title">跑后心率恢复速度 (HRR)</span>
         <span class="pill pill-green">2.5分基线降 ${esc(hrr.baseline_drop_2m_bpm)} bpm</span>
       </div>
-      <div class="prose" style="margin-bottom:4px;"><p>当前评定：<strong>${esc(hrr.parasympathetic_grade)}</strong></p></div>
+      <div class="prose" style="margin-bottom:8px;"><p>${esc(ins.hrr || hrr.parasympathetic_grade)}</p></div>
       ${chartBlock(d.charts?.sci_hrr_trend, "停表后 0–15 分钟心率下降曲线与储备心率恢复率")}
       <div class="tbl-wrap" style="margin-top:8px;">
         <table>
@@ -495,11 +499,12 @@ function renderDashboard(d) {
       </div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">静息心率、夜间 HRV 与睡眠分期</span></div>
+      <div class="card-head"><span class="card-title">静息心率、夜间 HRV 与睡眠归因</span></div>
+      ${ins.sleep_rhr ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.sleep_rhr)}</p></div>` : ""}
       ${chartBlock(d.charts?.pdf_wellness, "静息心率 RHR、夜间 HRV 与睡眠结构")}
     </div>`;
 
-  // Tab 3: All-Distance & Radar
+  // Tab 3: All-Distance, LT Dual-Check & Radar
   const dp = d.all_distance_profile || {};
   const predRows = (dp.all_distance_predictions || []).map(p => `
     <tr>
@@ -526,10 +531,26 @@ function renderDashboard(d) {
   document.getElementById("p-dist").innerHTML = `
     <div class="card">
       <div class="card-head">
+        <span class="card-title">乳酸阈值双轨评估（手表实测 × 算法推算）</span>
+        <span class="pill pill-blue">排课基准 ${esc(lt.fused_lt_pace || k.lt_pace)}</span>
+      </div>
+      <div class="prose" style="margin-bottom:10px;"><p>${esc(lt.diagnosis || "")}</p></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>评估来源</th><th>阈值配速</th><th>阈值心率</th><th>阈值功率</th><th>时效与依据</th></tr></thead>
+          <tbody>
+            <tr><td><strong>手表 Firstbeat 测量</strong></td><td>${esc(lt.watch_lt_pace)}</td><td>${esc(lt.watch_lt_hr)} bpm</td><td>${esc(lt.watch_ftp_w)} W</td><td>${esc(lt.watch_updated_date)} 更新</td></tr>
+            <tr><td><strong>算法分段稳态推算</strong></td><td><strong>${esc(lt.model_lt_pace)}</strong></td><td>${esc(lt.model_lt_hr)} bpm</td><td>${esc(lt.model_ftp_w)} W</td><td>近 28 天 ${esc(lt.valid_laps_analyzed)} 个有效分段回归</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
         <span class="card-title">全距离段能力评估与进阶目标</span>
         <span class="pill pill-neutral">衰减指数 ${esc(dp.endurance_decay_exponent_b)}</span>
       </div>
-      <div class="prose"><p>${esc(dp.phenotype_diagnosis)}</p></div>
+      <div class="prose" style="margin-bottom:6px;"><p>${esc(dp.phenotype_diagnosis)}</p></div>
       ${chartBlock(d.charts?.sci_speed_radar, "400m–半马速度耐力曲线与五维伤病风险雷达")}
       <div class="tbl-wrap" style="margin-top:8px;">
         <table>
@@ -547,7 +568,8 @@ function renderDashboard(d) {
       ${dimBars}
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">动态五区间参考标准</span></div>
+      <div class="card-head"><span class="card-title">动态五区间与心率分布诊断</span></div>
+      ${ins.zones_polarization ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.zones_polarization)}</p></div>` : ""}
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>区间</th><th>目标配速</th><th>心率范围</th><th>功率范围</th></tr></thead>
@@ -592,11 +614,12 @@ function renderDashboard(d) {
         <span class="card-title">已同步手表的滚动课表</span>
         <span class="pill pill-green">${(d.upcoming_schedule || []).length} 节待执行</span>
       </div>
+      ${ins.schedule_rationale ? `<div class="prose" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);"><p>${esc(ins.schedule_rationale)}</p></div>` : ""}
       ${schedItems || "<p>暂无待执行课表</p>"}
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">跑鞋寿命与轮换策略</span></div>
-      <div class="prose" style="margin-bottom:8px;"><p>${esc(d.shoe_gear_matrix?.coach_shoe_rule)}</p></div>
+      <div class="card-head"><span class="card-title">跑鞋生物力学对比与轮换诊断</span></div>
+      <div class="prose" style="margin-bottom:8px;"><p>${esc(ins.shoe_biomechanics || d.shoe_gear_matrix?.coach_shoe_rule)}</p></div>
       <div class="tbl-wrap">
         <table>
           <thead><tr><th>跑鞋</th><th>次数</th><th>里程与寿命余量</th><th>均配速</th><th>平均触地</th></tr></thead>
@@ -605,7 +628,8 @@ function renderDashboard(d) {
       </div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">跑姿动力学与近期跑步明细</span></div>
+      <div class="card-head"><span class="card-title">跑姿动力学演进与近期记录</span></div>
+      ${ins.biomechanics_splits ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.biomechanics_splits)}</p></div>` : ""}
       ${chartBlock(d.charts?.pdf_biomech, "步频×步幅等配速前沿面与触地时间走势")}
       ${chartBlock(d.charts?.pdf_splits, "重点课表分段解剖与有氧解耦率")}
       <div class="tbl-wrap" style="margin-top:8px;">
