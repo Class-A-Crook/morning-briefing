@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=3, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Garmin 训练与生理分析</title>
+<title>Garmin 训练与生理简报</title>
 <style>
   :root {
     --bg: #f5f5f4;
@@ -14,32 +14,38 @@
     --text-2: #3f3f46;
     --muted: #71717a;
     --line: #e4e4e7;
+    --grid: #f0f0f2;
     --accent: #1d4ed8;
     --accent-soft: #eff6ff;
+    --sky: #0284c7;
     --green: #15803d;
     --green-soft: #f0fdf4;
     --amber: #b45309;
     --amber-soft: #fffbeb;
     --red: #b91c1c;
     --red-soft: #fef2f2;
+    --violet: #7c3aed;
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0a0a0a;
+      --bg: #0a0a0b;
       --surface: #141416;
       --surface-subtle: #1c1c1f;
       --text: #f4f4f5;
       --text-2: #d4d4d8;
       --muted: #a1a1aa;
       --line: #27272a;
+      --grid: #1f1f23;
       --accent: #60a5fa;
       --accent-soft: rgba(59, 130, 246, 0.14);
+      --sky: #38bdf8;
       --green: #4ade80;
       --green-soft: rgba(74, 222, 128, 0.12);
       --amber: #fbbf24;
       --amber-soft: rgba(251, 191, 36, 0.14);
       --red: #f87171;
       --red-soft: rgba(248, 113, 113, 0.14);
+      --violet: #a78bfa;
     }
   }
 
@@ -48,200 +54,196 @@
     font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.65;
-    font-size: 15px;
+    line-height: 1.62;
+    font-size: 14.8px;
     font-variant-numeric: tabular-nums;
     padding-bottom: 56px;
     -webkit-font-smoothing: antialiased;
   }
-
   .wrap { max-width: 760px; margin: 0 auto; }
 
   .masthead {
     background: var(--surface);
-    padding: calc(18px + env(safe-area-inset-top)) 18px 16px;
+    padding: calc(16px + env(safe-area-inset-top)) 16px 14px;
     border-bottom: 1px solid var(--line);
   }
-  .mast-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .mast-title { font-size: 19px; font-weight: 700; letter-spacing: -0.2px; }
-  .mast-meta { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
-  .sec-tag {
-    font-size: 11px; font-weight: 600; color: var(--muted);
-    border: 1px solid var(--line); padding: 2px 8px; border-radius: 999px; white-space: nowrap;
+  .mast-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .mast-title { font-size: 18.5px; font-weight: 700; letter-spacing: -0.2px; }
+  .mast-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .refresh-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface-subtle); color: var(--text);
+    border: 1px solid var(--line); border-radius: 999px;
+    padding: 5px 11px; font-size: 12px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
   }
+  .refresh-btn:active { opacity: 0.65; }
+  .refresh-btn.spinning svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .live-banner {
+    display: none; margin-top: 10px; padding: 7px 11px; border-radius: 8px;
+    font-size: 12px; background: var(--accent-soft); color: var(--accent);
+    align-items: center; justify-content: space-between; gap: 8px;
+  }
+  .live-banner.show { display: flex; }
 
   .kpi-grid {
-    display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
-    margin-top: 14px;
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; margin-top: 13px;
   }
   @media (min-width: 640px) { .kpi-grid { grid-template-columns: repeat(4, 1fr); } }
   .kpi {
-    background: var(--surface-subtle);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 10px 12px;
+    background: var(--surface-subtle); border: 1px solid var(--line);
+    border-radius: 10px; padding: 9px 11px;
   }
-  .kpi-label { font-size: 11.5px; color: var(--muted); font-weight: 500; }
-  .kpi-value { font-size: 17px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.3px; }
-  .kpi-sub { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  .kpi-label { font-size: 11.2px; color: var(--muted); font-weight: 500; }
+  .kpi-value { font-size: 16.5px; font-weight: 700; color: var(--text); margin-top: 2px; letter-spacing: -0.3px; }
+  .kpi-sub { font-size: 11.2px; color: var(--muted); margin-top: 2px; }
 
   .nav-bar {
     position: sticky; top: 0; z-index: 30;
     background: color-mix(in srgb, var(--surface) 88%, transparent);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border-bottom: 1px solid var(--line);
-    padding: 8px 14px;
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line); padding: 8px 14px;
   }
   .nav-inner {
     max-width: 760px; margin: 0 auto;
     display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;
-    background: var(--bg);
-    padding: 3px;
-    border-radius: 9px;
-    border: 1px solid var(--line);
+    background: var(--bg); padding: 3px; border-radius: 9px; border: 1px solid var(--line);
   }
   .tab-btn {
-    background: transparent;
-    border: none;
-    color: var(--muted);
-    padding: 7px 4px;
-    border-radius: 6px;
-    font-size: 12.5px;
-    font-weight: 600;
-    white-space: nowrap;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s;
+    background: transparent; border: none; color: var(--muted);
+    padding: 7px 4px; border-radius: 6px; font-size: 12.5px; font-weight: 600;
+    white-space: nowrap; cursor: pointer;
   }
   .tab-btn.active {
-    background: var(--surface);
-    color: var(--text);
+    background: var(--surface); color: var(--text);
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   }
 
-  .main { max-width: 760px; margin: 0 auto; padding: 14px; }
+  .main { max-width: 760px; margin: 0 auto; padding: 13px; }
   .pane { display: none; }
   .pane.active { display: block; }
 
   .card {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 12px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 12px; padding: 15px; margin-bottom: 12px;
   }
   .card-head {
     display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    padding-bottom: 10px;
-    margin-bottom: 12px;
-    border-bottom: 1px solid var(--line);
+    padding-bottom: 9px; margin-bottom: 11px; border-bottom: 1px solid var(--line);
   }
-  .card-title { font-size: 14.5px; font-weight: 700; color: var(--text); letter-spacing: -0.1px; }
-  .pill {
-    font-size: 11.5px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap;
-  }
+  .card-title { font-size: 14.5px; font-weight: 700; color: var(--text); }
+  .pill { font-size: 11.2px; font-weight: 600; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
   .pill-green { background: var(--green-soft); color: var(--green); }
   .pill-amber { background: var(--amber-soft); color: var(--amber); }
   .pill-red { background: var(--red-soft); color: var(--red); }
   .pill-blue { background: var(--accent-soft); color: var(--accent); }
   .pill-neutral { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
 
-  .focus-box {
-    border-left: 3px solid var(--accent);
-    padding-left: 12px;
-  }
-  .focus-name { font-size: 15.5px; font-weight: 700; color: var(--text); }
-  .focus-desc { font-size: 13.5px; color: var(--text-2); margin-top: 5px; }
-  .focus-meta { font-size: 12.5px; color: var(--muted); margin-top: 7px; }
+  .focus-box { border-left: 3px solid var(--accent); padding-left: 11px; }
+  .focus-name { font-size: 15px; font-weight: 700; color: var(--text); }
+  .focus-desc { font-size: 13.2px; color: var(--text-2); margin-top: 4px; }
+  .focus-meta { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
-  .headline {
-    font-size: 16px; font-weight: 700; color: var(--text);
-    line-height: 1.45; margin-bottom: 12px;
+  .prog-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  @media (min-width: 540px) { .prog-grid { grid-template-columns: repeat(3, 1fr); } }
+  .prog-cell {
+    background: var(--surface-subtle); border: 1px solid var(--line);
+    border-radius: 9px; padding: 9px 10px;
   }
+  .prog-lbl { font-size: 11px; color: var(--muted); }
+  .prog-val { font-size: 15px; font-weight: 700; color: var(--text); margin-top: 2px; }
+  .prog-delta { font-size: 11.5px; font-weight: 600; margin-top: 2px; }
+  .delta-good { color: var(--green); }
+  .delta-warn { color: var(--amber); }
+  .delta-neutral { color: var(--muted); }
 
-  .prose h1, .prose h2 {
-    font-size: 14.5px; font-weight: 700; color: var(--text);
-    margin: 18px 0 8px; padding-bottom: 4px; border-bottom: 1px solid var(--line);
-  }
-  .prose h3 { font-size: 14px; font-weight: 700; color: var(--accent); margin: 14px 0 6px; }
-  .prose p { margin-bottom: 9px; font-size: 14px; color: var(--text-2); }
-  .prose ul, .prose ol { padding-left: 18px; margin-bottom: 10px; }
-  .prose li { margin-bottom: 5px; font-size: 13.8px; color: var(--text-2); }
+  .headline { font-size: 15.5px; font-weight: 700; color: var(--text); line-height: 1.45; margin-bottom: 10px; }
+  .prose h1, .prose h2 { font-size: 14.2px; font-weight: 700; color: var(--text); margin: 16px 0 7px; padding-bottom: 4px; border-bottom: 1px solid var(--line); }
+  .prose h3 { font-size: 13.8px; font-weight: 700; color: var(--accent); margin: 12px 0 5px; }
+  .prose p { margin-bottom: 8px; font-size: 13.8px; color: var(--text-2); }
+  .prose ul, .prose ol { padding-left: 18px; margin-bottom: 9px; }
+  .prose li { margin-bottom: 4px; font-size: 13.5px; color: var(--text-2); }
   .prose strong { color: var(--text); font-weight: 600; }
-  .prose hr { border: none; border-top: 1px solid var(--line); margin: 14px 0; }
-  .prose blockquote {
-    border-left: 3px solid var(--line); padding: 4px 12px; margin: 8px 0; color: var(--muted); font-size: 13.5px;
-  }
 
-  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 4px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 440px; }
-  th {
-    text-align: left; font-weight: 600; color: var(--muted);
-    padding: 7px 8px; border-bottom: 1.5px solid var(--line); white-space: nowrap; font-size: 11.8px;
+  .vchart-box { position: relative; margin: 8px 0 4px; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
+  .vchart-readout {
+    min-height: 22px; font-size: 11.8px; color: var(--muted);
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; margin-bottom: 4px;
   }
-  td {
-    padding: 8px 8px; border-bottom: 1px solid var(--line); color: var(--text-2); vertical-align: top;
-  }
+  .vchart-readout strong { color: var(--text); }
+  .vchart-svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .vchart-legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .leg-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; vertical-align: middle; }
+
+  .tbl-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 6px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.2px; min-width: 420px; }
+  th { text-align: left; font-weight: 600; color: var(--muted); padding: 7px 7px; border-bottom: 1.5px solid var(--line); white-space: nowrap; font-size: 11.5px; }
+  td { padding: 7.5px 7px; border-bottom: 1px solid var(--line); color: var(--text-2); vertical-align: top; }
   tr:last-child td { border-bottom: none; }
   td strong { color: var(--text); font-weight: 600; }
 
-  .chart-frame {
-    background: #ffffff;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 6px;
-    margin: 10px 0 4px;
-  }
-  .chart-frame img { width: 100%; height: auto; display: block; border-radius: 6px; cursor: zoom-in; }
-  .chart-cap { font-size: 11.5px; color: var(--muted); margin-bottom: 8px; }
-
-  .dim-item { margin-bottom: 11px; }
+  .dim-item { margin-bottom: 10px; }
   .dim-item:last-child { margin-bottom: 0; }
-  .dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; margin-bottom: 4px; gap: 8px; }
+  .dim-top { display: flex; justify-content: space-between; align-items: baseline; font-size: 12.8px; margin-bottom: 4px; gap: 8px; }
   .dim-name { font-weight: 600; color: var(--text); }
-  .dim-detail { font-size: 12px; color: var(--muted); }
+  .dim-detail { font-size: 11.8px; color: var(--muted); }
   .dim-score { font-weight: 700; color: var(--text); white-space: nowrap; }
   .track { height: 5px; background: var(--bg); border-radius: 99px; overflow: hidden; }
   .fill { height: 100%; border-radius: 99px; }
 
-  .sched-row {
-    padding: 10px 0;
-    border-bottom: 1px solid var(--line);
-  }
+  .sched-row { padding: 10px 0; border-bottom: 1px solid var(--line); }
   .sched-row:last-child { border-bottom: none; padding-bottom: 0; }
   .sched-row:first-child { padding-top: 0; }
   .sched-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
-  .sched-title { font-size: 13.8px; font-weight: 700; color: var(--text); }
-  .sched-date { font-size: 12px; color: var(--accent); font-weight: 600; white-space: nowrap; }
-  .sched-desc { font-size: 12.8px; color: var(--text-2); margin-top: 3px; }
-  .sched-foot { font-size: 11.8px; color: var(--muted); margin-top: 4px; }
+  .sched-title { font-size: 13.6px; font-weight: 700; color: var(--text); }
+  .sched-date { font-size: 11.8px; color: var(--accent); font-weight: 600; white-space: nowrap; }
+  .sched-desc { font-size: 12.5px; color: var(--text-2); margin-top: 3px; }
+  .sched-foot { font-size: 11.5px; color: var(--muted); margin-top: 4px; }
 
-  #auth-gate {
-    max-width: 400px; margin: 72px auto; padding: 24px; text-align: center;
+  .modal-bg {
+    display: none; position: fixed; inset: 0; z-index: 90;
+    background: rgba(0,0,0,0.55); align-items: center; justify-content: center; padding: 16px;
   }
-  #auth-gate input {
-    width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line);
-    background: var(--surface-subtle); color: var(--text); font-size: 13.5px; margin: 14px 0 10px;
+  .modal-bg.open { display: flex; }
+  .modal-card {
+    width: 100%; max-width: 390px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: 14px; padding: 18px;
   }
-  #auth-gate button {
-    width: 100%; padding: 10px; border-radius: 8px; border: none;
-    background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer;
+  .modal-card input {
+    width: 100%; padding: 9px 11px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--surface-subtle); color: var(--text); font-size: 13px; margin: 12px 0 10px;
   }
-  #lightbox {
-    display: none; position: fixed; inset: 0; z-index: 100;
-    background: rgba(0, 0, 0, 0.92); align-items: center; justify-content: center; padding: 10px;
-  }
-  #lightbox.open { display: flex; }
-  #lightbox img { max-width: 100%; max-height: 94vh; object-fit: contain; border-radius: 6px; background: #fff; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-weight: 600; font-size: 13px; cursor: pointer; }
+  .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 13px; cursor: pointer; }
+
+  #auth-gate { max-width: 390px; margin: 72px auto; padding: 24px; text-align: center; }
+  #auth-gate input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-subtle); color: var(--text); font-size: 13.5px; margin: 14px 0 10px; }
+  #auth-gate button { width: 100%; padding: 10px; border-radius: 8px; border: none; background: var(--accent); color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
 </style>
 </head>
 <body>
 
 <div id="auth-gate" class="card" style="display:none;">
   <div style="font-size:17px;font-weight:700;margin-bottom:6px;">私密训练看板验证</div>
-  <div id="gate-msg" style="font-size:13px;color:var(--muted);">请从 Bark 通知直达链接进入，或输入本地解密密钥：</div>
+  <div id="gate-msg" style="font-size:13px;color:var(--muted);">请从通知直达链接进入，或输入本地解密密钥：</div>
   <input id="key-input" type="password" placeholder="DASHBOARD_SECRET_KEY" autocomplete="off">
   <button id="unlock-btn">本地解密打开</button>
+</div>
+
+<div id="pat-modal" class="modal-bg">
+  <div class="modal-card">
+    <div style="font-size:15.5px;font-weight:700;">开启一键云端实时刷新</div>
+    <div style="font-size:12.5px;color:var(--muted);margin-top:5px;">首次点击刷新需输入你的 GitHub Fine-grained Token（仅保存在本机浏览器 localStorage，不上传任何服务器），之后每次点击将 40 秒内从佳明云端拉取实时数据。</div>
+    <input id="pat-input" type="password" placeholder="github_pat_..." autocomplete="off">
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closePatModal()">取消</button>
+      <button class="btn-primary" onclick="savePatAndSync()">保存并立即刷新</button>
+    </div>
+  </div>
 </div>
 
 <div id="app" style="display:none;">
@@ -250,9 +252,14 @@
       <div class="mast-top">
         <div>
           <div class="mast-title">Garmin 训练与生理简报</div>
-          <div class="mast-meta" id="sync-sub">同步加载中...</div>
+          <div class="mast-meta" id="sync-sub">正在加载...</div>
         </div>
+        <button id="refresh-btn" class="refresh-btn" onclick="handleLiveRefresh()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 9 15 9"/></svg>
+          <span id="refresh-txt">刷新</span>
+        </button>
       </div>
+      <div id="live-banner" class="live-banner"><span id="live-msg"></span><span id="live-timer"></span></div>
       <div class="kpi-grid" id="kpi-grid"></div>
     </div>
   </header>
@@ -274,12 +281,12 @@
   </main>
 </div>
 
-<div id="lightbox" onclick="this.classList.remove('open')">
-  <img id="lb-img" src="" alt="图表放大预览">
-</div>
-
 <script>
 const STORAGE_KEY = "garmin_v2_aes_key";
+const PAT_KEY = "garmin_v3_gh_pat";
+let ACTIVE_KEY = null;
+let LAST_TS = "";
+let SYNC_IN_PROGRESS = false;
 
 function b64urlToBytes(s) {
   let b64 = s.replace(/-/g, "+").replace(/_/g, "/");
@@ -289,80 +296,43 @@ function b64urlToBytes(s) {
   for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
   return out;
 }
-
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 }
-
+function fmtPaceSec(sec) {
+  if (!sec || sec <= 0) return "-";
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return s === 60 ? `${m+1}:00` : `${m}:${String(s).padStart(2, "0")}`;
+}
+function fmtCnTime(ms) {
+  const d = new Date(ms + 8 * 3600 * 1000);
+  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(d.getUTCDate()).padStart(2, "0");
+  const hh = String(d.getUTCHours()).padStart(2, "0");
+  const mi = String(d.getUTCMinutes()).padStart(2, "0");
+  return `${mm}-${dd} ${hh}:${mi}`;
+}
 function stripLatex(txt) {
   return String(txt || "")
     .replace(/\$\$([\s\S]*?)\$\$/g, "")
-    .replace(/\$([^$]+)\$/g, (_, inner) =>
-      inner
-        .replace(/\\text\{([^}]*)\}/g, "$1")
-        .replace(/\\times/g, "×")
-        .replace(/\\max/g, "max")
-        .replace(/\\exp/g, "exp")
-        .replace(/R\^2/g, "R²")
-        .replace(/[{}]/g, "")
-        .trim()
-    );
+    .replace(/\$([^$]+)\$/g, (_, inner) => inner.replace(/\\text\{([^}]*)\}/g, "$1").replace(/\\times/g, "×").replace(/R\^2/g, "R²").replace(/[{}]/g, "").trim());
 }
-
 function fmtInline(t) {
-  let clean = stripLatex(t);
-  return esc(clean)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/`([^`]+)`/g, "$1");
+  return esc(stripLatex(t)).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/`([^`]+)`/g, "$1");
 }
-
 function renderMarkdown(md) {
   if (!md) return "<p>暂无分析内容</p>";
   const lines = stripLatex(md).split(/\r?\n/);
-  let html = "";
-  let inUl = false;
-  let inOl = false;
-
-  const closeLists = () => {
-    if (inUl) { html += "</ul>"; inUl = false; }
-    if (inOl) { html += "</ol>"; inOl = false; }
-  };
-
+  let html = "", inUl = false, inOl = false;
+  const close = () => { if (inUl) { html += "</ul>"; inUl = false; } if (inOl) { html += "</ol>"; inOl = false; } };
   for (let i = 0; i < lines.length; i++) {
     const l = lines[i].trim();
-    if (!l) { closeLists(); continue; }
-
-    if (/^[-*_]{3,}$/.test(l)) {
-      closeLists();
-      html += "<hr>";
-      continue;
-    }
-
-    // Markdown table block
-    if (l.startsWith("|") && i + 1 < lines.length && /^\|[\s:|-]+\|/.test(lines[i + 1].trim())) {
-      closeLists();
-      const parseRow = r => r.replace(/^\||\|$/g, "").split("|").map(c => c.trim());
-      const headers = parseRow(l);
-      i += 2; // skip header + separator
-      let rows = [];
-      while (i < lines.length && lines[i].trim().startsWith("|")) {
-        rows.push(parseRow(lines[i].trim()));
-        i++;
-      }
-      i--;
-      html += `<div class="tbl-wrap"><table><thead><tr>${headers.map(h => `<th>${fmtInline(h)}</th>`).join("")}</tr></thead><tbody>`;
-      for (const row of rows) {
-        html += `<tr>${row.map(c => `<td>${fmtInline(c)}</td>`).join("")}</tr>`;
-      }
-      html += "</tbody></table></div>";
-      continue;
-    }
-
-    if (l.startsWith("#### ")) { closeLists(); html += `<h3>${fmtInline(l.slice(5))}</h3>`; }
-    else if (l.startsWith("### ")) { closeLists(); html += `<h3>${fmtInline(l.slice(4))}</h3>`; }
-    else if (l.startsWith("## ")) { closeLists(); html += `<h2>${fmtInline(l.slice(3))}</h2>`; }
-    else if (l.startsWith("# ")) { closeLists(); html += `<h1>${fmtInline(l.slice(2))}</h1>`; }
-    else if (l.startsWith("> ")) { closeLists(); html += `<blockquote>${fmtInline(l.slice(2))}</blockquote>`; }
+    if (!l) { close(); continue; }
+    if (/^[-*_]{3,}$/.test(l)) { close(); html += "<hr>"; continue; }
+    if (l.startsWith("#### ")) { close(); html += `<h3>${fmtInline(l.slice(5))}</h3>`; }
+    else if (l.startsWith("### ")) { close(); html += `<h3>${fmtInline(l.slice(4))}</h3>`; }
+    else if (l.startsWith("## ")) { close(); html += `<h2>${fmtInline(l.slice(3))}</h2>`; }
+    else if (l.startsWith("# ")) { close(); html += `<h1>${fmtInline(l.slice(2))}</h1>`; }
     else if (/^[-*▸•]\s+/.test(l)) {
       if (inOl) { html += "</ol>"; inOl = false; }
       if (!inUl) { html += "<ul>"; inUl = true; }
@@ -371,30 +341,368 @@ function renderMarkdown(md) {
       if (inUl) { html += "</ul>"; inUl = false; }
       if (!inOl) { html += "<ol>"; inOl = true; }
       html += `<li>${fmtInline(l.replace(/^\d+\.\s+/, ""))}</li>`;
-    } else {
-      closeLists();
-      html += `<p>${fmtInline(l)}</p>`;
-    }
+    } else { close(); html += `<p>${fmtInline(l)}</p>`; }
   }
-  closeLists();
+  close();
   return html;
 }
 
-function chartBlock(b64, caption) {
-  if (!b64) return "";
-  return `<div class="chart-frame"><img src="${b64}" onclick="zoomImg(this.src)" alt="${esc(caption)}"></div><div class="chart-cap">${esc(caption)}（点击可放大查看）</div>`;
+// =====================================================================
+// NATIVE INTERACTIVE TOUCH-SVG CHART RENDERERS (Retina + Dark Mode)
+// =====================================================================
+function attachScrub(svgEl, readoutEl, items, xMapper, onRead) {
+  if (!svgEl || !items.length) return;
+  const cursor = svgEl.querySelector(".scrub-line");
+  const dot = svgEl.querySelector(".scrub-dot");
+  function handleX(clientX) {
+    const rect = svgEl.getBoundingClientRect();
+    const vb = svgEl.viewBox.baseVal;
+    const vx = ((clientX - rect.left) / rect.width) * vb.width;
+    let best = 0, bestD = 1e9;
+    for (let i = 0; i < items.length; i++) {
+      const dx = Math.abs(xMapper(i) - vx);
+      if (dx < bestD) { bestD = dx; best = i; }
+    }
+    const cx = xMapper(best);
+    if (cursor) { cursor.setAttribute("x1", cx); cursor.setAttribute("x2", cx); cursor.setAttribute("opacity", "1"); }
+    const info = onRead(best, cx, dot);
+    if (readoutEl && info) readoutEl.innerHTML = info;
+  }
+  svgEl.addEventListener("pointerdown", e => { handleX(e.clientX); });
+  svgEl.addEventListener("pointermove", e => { if (e.buttons > 0 || e.pointerType === "mouse") handleX(e.clientX); });
 }
 
-function zoomImg(src) {
-  document.getElementById("lb-img").src = src;
-  document.getElementById("lightbox").classList.add("open");
+function draw36hHrvChart(containerId, hrvData) {
+  const el = document.getElementById(containerId);
+  const pts = hrvData?.pts || [], bb = hrvData?.bb || [], runs = hrvData?.runs || [];
+  if (!el || !pts.length) return;
+
+  const W = 680, H = 245, PL = 36, PR = 34, PT = 14, PB = 26;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const tMin = Math.min(pts[0][0], bb.length ? bb[0][0] : pts[0][0]);
+  const tMax = Math.max(pts[pts.length - 1][0], bb.length ? bb[bb.length - 1][0] : pts[pts.length - 1][0]);
+  const span = Math.max(1, tMax - tMin);
+  const xOf = ts => PL + ((ts - tMin) / span) * cw;
+  const yHrv = v => PT + ch - (Math.min(145, Math.max(0, v)) / 145) * ch;
+  const yBb = v => PT + ch - (Math.min(105, Math.max(0, v)) / 105) * ch;
+
+  // Build segmented paths (break on gaps > 28 min)
+  function segPath(filterSrc) {
+    let d = "", prevTs = null;
+    for (const p of pts) {
+      if (p[2] !== filterSrc || p[1] == null) { prevTs = null; continue; }
+      const x = xOf(p[0]).toFixed(1), y = yHrv(p[1]).toFixed(1);
+      d += (prevTs == null || (p[0] - prevTs) > 28 * 60000) ? `M${x},${y}` : `L${x},${y}`;
+      prevTs = p[0];
+    }
+    return d;
+  }
+  // Confidence band for daytime HRV
+  let bandPaths = "";
+  let seg = [];
+  const flushBand = () => {
+    if (seg.length >= 2) {
+      const top = seg.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p[0]).toFixed(1)},${yHrv(p[4]).toFixed(1)}`).join("");
+      const bot = seg.slice().reverse().map(p => `L${xOf(p[0]).toFixed(1)},${yHrv(p[3]).toFixed(1)}`).join("");
+      bandPaths += `<path d="${top}${bot}Z" fill="var(--sky)" opacity="0.13"/>`;
+    }
+    seg = [];
+  };
+  for (const p of pts) {
+    if (p[2] === 1 && p[3] != null && p[4] != null) {
+      if (seg.length && (p[0] - seg[seg.length - 1][0]) > 28 * 60000) flushBand();
+      seg.push(p);
+    } else flushBand();
+  }
+  flushBand();
+
+  let bbPath = "";
+  bb.forEach((b, i) => {
+    bbPath += `${i === 0 ? "M" : "L"}${xOf(b[0]).toFixed(1)},${yBb(b[1]).toFixed(1)}`;
+  });
+
+  let runRects = "";
+  for (const r of runs) {
+    const x1 = Math.max(PL, xOf(r[0])), x2 = Math.min(PL + cw, xOf(r[1]));
+    if (x2 > x1) runRects += `<rect x="${x1.toFixed(1)}" y="${PT}" width="${Math.max(4, x2 - x1).toFixed(1)}" height="${ch}" fill="#f97316" opacity="0.20"/>`;
+  }
+
+  let grid = "";
+  for (const v of [0, 35, 70, 105, 140]) {
+    const y = yHrv(v).toFixed(1);
+    grid += `<line x1="${PL}" x2="${PL+cw}" y1="${y}" y2="${y}" stroke="var(--grid)" stroke-width="1"/>`;
+    grid += `<text x="${PL-6}" y="${+y+3.5}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`;
+  }
+  for (const v of [0, 25, 50, 75, 100]) {
+    const y = yBb(v).toFixed(1);
+    grid += `<text x="${PL+cw+6}" y="${+y+3.5}" text-anchor="start" font-size="10" fill="var(--violet)">${v}</text>`;
+  }
+  for (let i = 0; i <= 4; i++) {
+    const ts = tMin + (span * i) / 4;
+    const x = xOf(ts).toFixed(1);
+    grid += `<text x="${x}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${fmtCnTime(ts).slice(6)}</text>`;
+  }
+
+  el.innerHTML = `
+    <div class="vchart-readout" id="${containerId}-ro"><span>手指划动图表查看任意时刻精确 HRV 与身体电量</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">
+      ${grid}${runRects}${bandPaths}
+      <path d="${bbPath}" fill="none" stroke="var(--violet)" stroke-width="1.8" stroke-dasharray="5 3" opacity="0.85"/>
+      <path d="${segPath(1)}" fill="none" stroke="var(--sky)" stroke-width="2"/>
+      <path d="${segPath(0)}" fill="none" stroke="var(--green)" stroke-width="2.4"/>
+      <line class="scrub-line" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ch}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+      <circle class="scrub-dot" cx="${PL}" cy="${PT}" r="4.5" fill="var(--sky)" stroke="var(--surface)" stroke-width="1.5" opacity="0"/>
+    </svg>
+    <div class="vchart-legend">
+      <span><i class="leg-dot" style="background:var(--green)"></i>夜间实测 HRV</span>
+      <span><i class="leg-dot" style="background:var(--sky)"></i>日间校准 HRV（含置信带）</span>
+      <span><i class="leg-dot" style="background:var(--violet)"></i>身体电量（右轴）</span>
+    </div>`;
+
+  const validPts = pts.filter(p => p[1] != null);
+  const svg = el.querySelector("svg"), ro = document.getElementById(`${containerId}-ro`);
+  attachScrub(svg, ro, validPts, i => xOf(validPts[i][0]), (idx, cx, dot) => {
+    const p = validPts[idx];
+    const nearestBb = bb.reduce((a, b) => Math.abs(b[0] - p[0]) < Math.abs(a[0] - p[0]) ? b : a, bb[0] || [0, "-"]);
+    if (dot) {
+      dot.setAttribute("cx", cx);
+      dot.setAttribute("cy", yHrv(p[1]));
+      dot.setAttribute("fill", p[2] === 0 ? "var(--green)" : "var(--sky)");
+      dot.setAttribute("opacity", "1");
+    }
+    const tag = p[2] === 0 ? "夜间实测" : "日间校准";
+    return `<span><strong>${fmtCnTime(p[0])}</strong> · ${tag} HRV <strong>${p[1]} ms</strong></span><span>电量 <strong>${nearestBb[1]}</strong>${p[5] != null ? " · 压力 " + p[5] : ""}</span>`;
+  });
 }
 
+function drawHrrChart(containerId, hrrVec) {
+  const el = document.getElementById(containerId);
+  const curves = hrrVec?.curves || [];
+  if (!el || !curves.length) return;
+  const W = 680, H = 215, PL = 38, PR = 18, PT = 14, PB = 26;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const allHrs = curves.flatMap(c => c.pts.map(p => p[1]));
+  const yMin = Math.max(55, Math.floor((Math.min(...allHrs) - 8) / 10) * 10);
+  const yMax = Math.ceil((Math.max(...allHrs) + 8) / 10) * 10;
+  const xOf = m => PL + (m / 15) * cw;
+  const yOf = hr => PT + ch - ((hr - yMin) / Math.max(10, yMax - yMin)) * ch;
+
+  const cols = ["#94a3b8", "#60a5fa", "#10b981", "#f59e0b", "#1d4ed8"];
+  let grid = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = Math.round(yMin + ((yMax - yMin) * i) / 4);
+    const y = yOf(v).toFixed(1);
+    grid += `<line x1="${PL}" x2="${PL+cw}" y1="${y}" y2="${y}" stroke="var(--grid)"/>`;
+    grid += `<text x="${PL-6}" y="${+y+3.5}" text-anchor="end" font-size="10" fill="var(--muted)">${v}</text>`;
+  }
+  for (const m of [0, 2.5, 5, 10, 15]) {
+    grid += `<text x="${xOf(m).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">+${m}m</text>`;
+  }
+  let paths = "", leg = "";
+  curves.forEach((c, idx) => {
+    const col = cols[idx % cols.length];
+    const isLast = idx === curves.length - 1;
+    const d = c.pts.map((p, i) => `${i === 0 ? "M" : "L"}${xOf(p[0]).toFixed(1)},${yOf(p[1]).toFixed(1)}`).join("");
+    paths += `<path d="${d}" fill="none" stroke="${col}" stroke-width="${isLast ? 2.6 : 1.5}" opacity="${isLast ? 1 : 0.72}"/>`;
+    c.pts.forEach(p => { paths += `<circle cx="${xOf(p[0]).toFixed(1)}" cy="${yOf(p[1]).toFixed(1)}" r="${isLast ? 3.5 : 2.3}" fill="${col}"/>`; });
+    leg += `<span><i class="leg-dot" style="background:${col}"></i>${esc(c.date)} (降${c.drop_2m ?? "-"})</span>`;
+  });
+
+  el.innerHTML = `
+    <div class="vchart-readout"><span>最近 5 次跑后 0–15 分钟心率回落轨迹（粗蓝线为最新一次）</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">${grid}${paths}</svg>
+    <div class="vchart-legend">${leg}</div>`;
+}
+
+function drawAllDistanceChart(containerId, preds) {
+  const el = document.getElementById(containerId);
+  if (!el || !preds?.length) return;
+  const W = 680, H = 220, PL = 44, PR = 18, PT = 14, PB = 28;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const pCur = preds.map(p => (p.current_sec / p.meters) * 1000);
+  const p4w = preds.map(p => (p.target_4w_sec / p.meters) * 1000);
+  const p8w = preds.map(p => (p.target_8w_sec / p.meters) * 1000);
+  const pMin = Math.min(...p8w) - 10, pMax = Math.max(...pCur) + 12;
+  const xOf = i => PL + (i / (preds.length - 1)) * cw;
+  const yOf = sec => PT + ((sec - pMin) / Math.max(10, pMax - pMin)) * ch; // Faster (lower sec) at top!
+
+  let grid = "";
+  for (let i = 0; i <= 4; i++) {
+    const v = pMin + ((pMax - pMin) * i) / 4;
+    const y = yOf(v).toFixed(1);
+    grid += `<line x1="${PL}" x2="${PL+cw}" y1="${y}" y2="${y}" stroke="var(--grid)"/>`;
+    grid += `<text x="${PL-6}" y="${+y+3.5}" text-anchor="end" font-size="10" fill="var(--muted)">${fmtPaceSec(v)}</text>`;
+  }
+  preds.forEach((p, i) => {
+    grid += `<text x="${xOf(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10.2" fill="var(--muted)">${esc(p.distance.replace("半程马拉松","半马"))}</text>`;
+  });
+  const line = (arr, col, dash) => {
+    const d = arr.map((v, i) => `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yOf(v).toFixed(1)}`).join("");
+    return `<path d="${d}" fill="none" stroke="${col}" stroke-width="2.2" ${dash ? `stroke-dasharray="${dash}"` : ""}/>` +
+      arr.map((v, i) => `<circle cx="${xOf(i).toFixed(1)}" cy="${yOf(v).toFixed(1)}" r="3.2" fill="${col}"/>`).join("");
+  };
+
+  el.innerHTML = `
+    <div class="vchart-readout" id="${containerId}-ro"><span>点击或划动距离节点对比当前与 4/8 周目标配速</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">
+      ${grid}${line(pCur, "var(--accent)")}${line(p4w, "var(--green)", "5 3")}${line(p8w, "#e11d48", "2 3")}
+      <line class="scrub-line" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ch}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+    </svg>
+    <div class="vchart-legend">
+      <span><i class="leg-dot" style="background:var(--accent)"></i>当前评估</span>
+      <span><i class="leg-dot" style="background:var(--green)"></i>4 周目标</span>
+      <span><i class="leg-dot" style="background:#e11d48"></i>8 周目标</span>
+    </div>`;
+
+  const svg = el.querySelector("svg"), ro = document.getElementById(`${containerId}-ro`);
+  attachScrub(svg, ro, preds, xOf, idx => {
+    const p = preds[idx];
+    return `<span><strong>${esc(p.distance)}</strong> · 当前 <strong>${esc(p.current_time)}</strong> (${esc(p.current_pace)})</span><span>4周 ${esc(p.target_4w_time)} · 8周 <strong style="color:var(--green)">${esc(p.target_8w_time)}</strong></span>`;
+  });
+}
+
+function drawRadarSvg(containerId, radar) {
+  const el = document.getElementById(containerId);
+  const dims = radar?.dimensions || [];
+  if (!el || !dims.length) return;
+  const W = 320, H = 250, cx = 160, cy = 128, R = 82;
+  const n = dims.length;
+  const col = radar.level === "GREEN" ? "var(--green)" : (radar.level === "YELLOW" ? "var(--amber)" : "var(--red)");
+  const pt = (i, r) => {
+    const a = -Math.PI / 2 + (2 * Math.PI * i) / n;
+    return [cx + r * Math.cos(a), cy + r * Math.sin(a)];
+  };
+  let rings = "";
+  for (const frac of [0.25, 0.5, 0.75, 1]) {
+    const pts = Array.from({ length: n }, (_, i) => pt(i, R * frac).map(v => v.toFixed(1)).join(",")).join(" ");
+    rings += `<polygon points="${pts}" fill="none" stroke="var(--line)" stroke-width="1"/>`;
+  }
+  let spokes = "", labels = "";
+  dims.forEach((d, i) => {
+    const [x, y] = pt(i, R);
+    const [lx, ly] = pt(i, R + 22);
+    spokes += `<line x1="${cx}" y1="${cy}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}" stroke="var(--line)"/>`;
+    labels += `<text x="${lx.toFixed(1)}" y="${(ly + 3).toFixed(1)}" text-anchor="middle" font-size="10.5" fill="var(--text-2)">${esc(d.name.split(" (")[0])}</text>`;
+  });
+  const poly = dims.map((d, i) => pt(i, R * (Math.min(20, d.score_20) / 20)).map(v => v.toFixed(1)).join(",")).join(" ");
+  el.innerHTML = `<svg class="vchart-svg" style="max-width:330px;margin:0 auto;" viewBox="0 0 ${W} ${H}">${rings}${spokes}<polygon points="${poly}" fill="${col}" fill-opacity="0.22" stroke="${col}" stroke-width="2.2"/>${labels}</svg>`;
+}
+
+function drawWeeklyEfChart(containerId, weekly) {
+  const el = document.getElementById(containerId);
+  if (!el || !weekly?.length) return;
+  const W = 680, H = 205, PL = 36, PR = 38, PT = 16, PB = 26;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const maxKm = Math.max(15, ...weekly.map(w => w.km)) * 1.18;
+  const efs = weekly.map(w => w.ef).filter(Boolean);
+  const efMin = Math.min(...efs, 0.95) - 0.04, efMax = Math.max(...efs, 1.18) + 0.04;
+  const bw = cw / weekly.length;
+  const xC = i => PL + bw * i + bw / 2;
+  const yKm = v => PT + ch - (v / maxKm) * ch;
+  const yEf = v => PT + ch - ((v - efMin) / Math.max(0.05, efMax - efMin)) * ch;
+
+  let bars = "", efPath = "", xLbls = "";
+  weekly.forEach((w, i) => {
+    const bh = ch - (yKm(w.km) - PT);
+    bars += `<rect x="${(xC(i) - bw * 0.28).toFixed(1)}" y="${yKm(w.km).toFixed(1)}" width="${(bw * 0.56).toFixed(1)}" height="${bh.toFixed(1)}" rx="4" fill="var(--accent)" opacity="0.26"/>`;
+    xLbls += `<text x="${xC(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10.2" fill="var(--muted)">${esc(w.w)}</text>`;
+    if (w.ef) efPath += `${efPath ? "L" : "M"}${xC(i).toFixed(1)},${yEf(w.ef).toFixed(1)}`;
+  });
+  let efDots = weekly.map((w, i) => w.ef ? `<circle cx="${xC(i).toFixed(1)}" cy="${yEf(w.ef).toFixed(1)}" r="3.5" fill="var(--green)"/>` : "").join("");
+
+  el.innerHTML = `
+    <div class="vchart-readout" id="${containerId}-ro"><span>划动查看每周跑量、训练负荷与平均有氧效率 EF</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">
+      ${bars}<path d="${efPath}" fill="none" stroke="var(--green)" stroke-width="2.2"/>${efDots}${xLbls}
+      <line class="scrub-line" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ch}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+    </svg>
+    <div class="vchart-legend"><span><i class="leg-dot" style="background:var(--accent)"></i>周跑量 (km)</span><span><i class="leg-dot" style="background:var(--green)"></i>周均有效效率 EF</span></div>`;
+
+  attachScrub(el.querySelector("svg"), document.getElementById(`${containerId}-ro`), weekly, xC, idx => {
+    const w = weekly[idx];
+    return `<span><strong>${esc(w.w)} 周</strong> · 跑量 <strong>${w.km} km</strong>（${w.runs}次）</span><span>总负荷 <strong>${w.load}</strong> · EF <strong>${w.ef ?? "-"}</strong></span>`;
+  });
+}
+
+function drawWellness30dChart(containerId, days) {
+  const el = document.getElementById(containerId);
+  if (!el || !days?.length) return;
+  const W = 680, H = 205, PL = 34, PR = 34, PT = 14, PB = 26;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const bw = cw / days.length;
+  const xC = i => PL + bw * i + bw / 2;
+  const ySl = h => PT + ch - (Math.min(10, Math.max(0, h)) / 10) * ch;
+  const hrvs = days.map(d => d.hrv).filter(Boolean);
+  const hMin = Math.min(...hrvs, 65) - 5, hMax = Math.max(...hrvs, 105) + 5;
+  const yHrv = v => PT + ch - ((v - hMin) / Math.max(10, hMax - hMin)) * ch;
+
+  let bars = "", path = "", lbls = "";
+  days.forEach((d, i) => {
+    if (d.sl) {
+      const y = ySl(d.sl);
+      bars += `<rect x="${(xC(i) - bw * 0.34).toFixed(1)}" y="${y.toFixed(1)}" width="${(bw * 0.68).toFixed(1)}" height="${(PT + ch - y).toFixed(1)}" rx="2" fill="var(--sky)" opacity="0.25"/>`;
+    }
+    if (d.hrv) path += `${path ? "L" : "M"}${xC(i).toFixed(1)},${yHrv(d.hrv).toFixed(1)}`;
+    if (i % Math.max(1, Math.floor(days.length / 5)) === 0 || i === days.length - 1) {
+      lbls += `<text x="${xC(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(d.d)}</text>`;
+    }
+  });
+  const ref75 = ySl(7.5).toFixed(1);
+  el.innerHTML = `
+    <div class="vchart-readout" id="${containerId}-ro"><span>划动查看近 30 天睡眠时长、深睡与夜间 HRV 走势</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">
+      <line x1="${PL}" x2="${PL+cw}" y1="${ref75}" y2="${ref75}" stroke="var(--green)" stroke-dasharray="4 3" opacity="0.5"/>
+      ${bars}<path d="${path}" fill="none" stroke="var(--green)" stroke-width="2.2"/>${lbls}
+      <line class="scrub-line" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ch}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+    </svg>
+    <div class="vchart-legend"><span><i class="leg-dot" style="background:var(--sky)"></i>睡眠时长（虚线 7.5h）</span><span><i class="leg-dot" style="background:var(--green)"></i>夜间 HRV (ms)</span></div>`;
+
+  attachScrub(el.querySelector("svg"), document.getElementById(`${containerId}-ro`), days, xC, idx => {
+    const d = days[idx];
+    return `<span><strong>${esc(d.d)}</strong> · 睡眠 <strong>${d.sl ?? "-"}h</strong>（深睡 ${d.dp}h）</span><span>HRV <strong>${d.hrv ?? "-"} ms</strong> · RHR ${d.rhr ?? "-"}</span>`;
+  });
+}
+
+function drawBiomechChart(containerId, runs) {
+  const el = document.getElementById(containerId);
+  const st = (runs || []).filter(r => r.st === 1 && r.gct && r.cad);
+  if (!el || !st.length) return;
+  const W = 680, H = 200, PL = 38, PR = 36, PT = 14, PB = 26;
+  const cw = W - PL - PR, ch = H - PT - PB;
+  const xOf = i => PL + (i / Math.max(1, st.length - 1)) * cw;
+  const gMin = Math.min(...st.map(r => r.gct)) - 5, gMax = Math.max(...st.map(r => r.gct)) + 5;
+  const cMin = Math.min(...st.map(r => r.cad)) - 3, cMax = Math.max(...st.map(r => r.cad)) + 3;
+  const yG = v => PT + ch - ((v - gMin) / Math.max(5, gMax - gMin)) * ch;
+  const yC = v => PT + ch - ((v - cMin) / Math.max(5, cMax - cMin)) * ch;
+
+  const pG = st.map((r, i) => `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yG(r.gct).toFixed(1)}`).join("");
+  const pC = st.map((r, i) => `${i === 0 ? "M" : "L"}${xOf(i).toFixed(1)},${yC(r.cad).toFixed(1)}`).join("");
+  let lbls = "";
+  st.forEach((r, i) => {
+    if (i % Math.max(1, Math.floor(st.length / 5)) === 0 || i === st.length - 1) {
+      lbls += `<text x="${xOf(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--muted)">${esc(r.d)}</text>`;
+    }
+  });
+  el.innerHTML = `
+    <div class="vchart-readout" id="${containerId}-ro"><span>划动查看稳态跑触地时间 (GCT) 与步频演进</span></div>
+    <svg class="vchart-svg" viewBox="0 0 ${W} ${H}">
+      <path d="${pG}" fill="none" stroke="var(--violet)" stroke-width="2.2"/>
+      <path d="${pC}" fill="none" stroke="var(--green)" stroke-width="2"/>${lbls}
+      <line class="scrub-line" x1="${PL}" x2="${PL}" y1="${PT}" y2="${PT+ch}" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+    </svg>
+    <div class="vchart-legend"><span><i class="leg-dot" style="background:var(--violet)"></i>触地时间 GCT (ms，越低越轻快)</span><span><i class="leg-dot" style="background:var(--green)"></i>平均步频 (spm)</span></div>`;
+
+  attachScrub(el.querySelector("svg"), document.getElementById(`${containerId}-ro`), st, xOf, idx => {
+    const r = st[idx];
+    return `<span><strong>${esc(r.d)}</strong> · ${r.km}km @ ${fmtPaceSec(r.p)}/km</span><span>步频 <strong>${r.cad}</strong> · 触地 <strong>${r.gct} ms</strong>${r.dec != null ? " · 解耦 " + r.dec + "%" : ""}</span>`;
+  });
+}
+
+// =====================================================================
+// RENDER ENTIRE DASHBOARD
+// =====================================================================
 function renderDashboard(d) {
-  const k = d.kpis || {};
-  const rad = d.injury_radar || {};
-  const ins = d.section_insights || {};
-  const lt = d.lt_analysis || {};
+  const k = d.kpis || {}, rad = d.injury_radar || {}, ins = d.section_insights || {}, lt = d.lt_analysis || {};
   const radCls = rad.level === "GREEN" ? "pill-green" : (rad.level === "YELLOW" ? "pill-amber" : "pill-red");
   const radTxt = rad.level === "GREEN" ? "安全" : (rad.level === "YELLOW" ? "注意" : "高危");
   const vo2Delta = Number(k.vo2_delta || 0);
@@ -404,244 +712,169 @@ function renderDashboard(d) {
     `更新于 ${(d.generated_at || "").slice(0, 16)} · 累计 ${k.total_runs || 0} 次 / ${k.total_km || 0} km`;
 
   document.getElementById("kpi-grid").innerHTML = `
-    <div class="kpi">
-      <div class="kpi-label">最大摄氧量 VO₂Max</div>
-      <div class="kpi-value">${esc(k.vo2max)}</div>
-      <div class="kpi-sub">${esc(vo2Sub)}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">有效乳酸阈值</div>
-      <div class="kpi-value">${esc(k.lt_pace)}</div>
-      <div class="kpi-sub">${esc(lt.model_lt_hr ?? k.lt_hr)} bpm · ${esc(lt.model_ftp_w ?? k.ftp_w)} W</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">全天候 HRV (夜 / 日)</div>
-      <div class="kpi-value">${esc(k.hrv_night ?? "-")} / ${esc(k.hrv_day_est ?? "-")} ms</div>
-      <div class="kpi-sub">静息 ${esc(k.rhr ?? "-")} bpm · 电量 ${esc(k.bb_now ?? k.bb_high ?? "-")}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">伤病风险雷达</div>
-      <div class="kpi-value">${esc(rad.risk_score_100 ?? "-")} / 100</div>
-      <div class="kpi-sub"><span class="pill ${radCls}">${radTxt}</span></div>
-    </div>`;
+    <div class="kpi"><div class="kpi-label">最大摄氧量 VO₂Max</div><div class="kpi-value">${esc(k.vo2max)}</div><div class="kpi-sub">${esc(vo2Sub)}</div></div>
+    <div class="kpi"><div class="kpi-label">有效乳酸阈值</div><div class="kpi-value">${esc(k.lt_pace)}</div><div class="kpi-sub">${esc(lt.fused_lt_hr ?? k.lt_hr)} bpm · ${esc(lt.fused_ftp_w ?? k.ftp_w)} W</div></div>
+    <div class="kpi"><div class="kpi-label">全天候 HRV (夜 / 日)</div><div class="kpi-value">${esc(k.hrv_night ?? "-")} / ${esc(k.hrv_day_est ?? "-")} ms</div><div class="kpi-sub">静息 ${esc(k.rhr ?? "-")} bpm · 电量 ${esc(k.bb_now ?? k.bb_high ?? "-")}</div></div>
+    <div class="kpi"><div class="kpi-label">伤病风险雷达</div><div class="kpi-value">${esc(rad.risk_score_100 ?? "-")} / 100</div><div class="kpi-sub"><span class="pill ${radCls}">${radTxt}</span></div></div>`;
 
-  // Tab 1: Coach
-  const nxt = (d.upcoming_schedule || [])[0];
-  const ai = d.ai_coach || {};
+  // --- Tab 1: Coach, Next Workout, 14d Progression, Compliance, Weekly EF ---
+  const nxt = (d.upcoming_schedule || [])[0], ai = d.ai_coach || {};
+  const p14 = d.progression_14d || {}, comp = (d.plan_compliance || {}).latest || {};
+  const p14Cells = (p14.metrics || []).map(m => `
+    <div class="prog-cell">
+      <div class="prog-lbl">${esc(m.label)}</div>
+      <div class="prog-val">${esc(m.current)}</div>
+      <div class="prog-delta delta-${esc(m.trend)}">${esc(m.delta)} <span style="color:var(--muted);font-weight:400;">(前14天 ${esc(m.previous)})</span></div>
+    </div>`).join("");
+
   let coachHtml = "";
   if (nxt) {
-    coachHtml += `
-      <div class="card">
-        <div class="card-head">
-          <span class="card-title">下一节待执行课表</span>
-          <span class="pill pill-blue">${esc(nxt.date)} ${esc(nxt.weekday)}</span>
-        </div>
-        <div class="focus-box">
-          <div class="focus-name">${esc(nxt.name)}</div>
-          <div class="focus-desc">${esc(nxt.description)}</div>
-          <div class="focus-meta">建议用鞋：${esc(nxt.shoe)} · 预计里程 ${esc(nxt.dist_km)} km</div>
-        </div>
-      </div>`;
+    coachHtml += `<div class="card">
+      <div class="card-head"><span class="card-title">下一节待执行课表</span><span class="pill pill-blue">${esc(nxt.date)} ${esc(nxt.weekday)}</span></div>
+      <div class="focus-box">
+        <div class="focus-name">${esc(nxt.name)}</div>
+        <div class="focus-desc">${esc(nxt.description)}</div>
+        <div class="focus-meta">建议用鞋：${esc(nxt.shoe)} · 预计里程 ${esc(nxt.dist_km)} km</div>
+      </div>
+    </div>`;
+  }
+  if (comp.score_100 != null) {
+    const cCls = comp.score_100 >= 85 ? "pill-green" : (comp.score_100 >= 72 ? "pill-amber" : "pill-red");
+    coachHtml += `<div class="card">
+      <div class="card-head"><span class="card-title">最近课表执行精准度 · ${esc((comp.date || "").slice(5))}</span><span class="pill ${cCls}">${esc(comp.score_100)} / 100 · ${esc(comp.grade)}</span></div>
+      <div class="prose"><ul>${(comp.notes || []).map(n => `<li>${esc(n)}</li>`).join("")}</ul></div>
+    </div>`;
   }
   coachHtml += `
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">主教练深度诊断</span>
-        <span class="pill pill-neutral">${esc((ai.date || "").slice(5) || "今日")}</span>
-      </div>
+      <div class="card-head"><span class="card-title">主教练深度诊断</span><span class="pill pill-neutral">${esc((ai.date || "").slice(5) || "今日")}</span></div>
       ${ai.headline ? `<div class="headline">${esc(ai.headline)}</div>` : ""}
       <div class="prose">${renderMarkdown(ai.full_markdown || ai.bark_body)}</div>
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">训练负荷与有氧效率走势</span></div>
-      ${ins.volume_and_ef ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.volume_and_ef)}</p></div>` : ""}
-      ${chartBlock(d.charts?.pdf_overview, "周跑量负荷演进与单次配速轨迹")}
-      ${chartBlock(d.charts?.pdf_ef, "有氧效率系数 EF 与心率-配速效率上移")}
+      <div class="card-head"><span class="card-title">14 天周期进步对照</span><span class="pill pill-neutral">${esc(p14.window_label || "近14天 vs 前14天")}</span></div>
+      <div class="prog-grid">${p14Cells}</div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">周跑量与有氧效率走势</span></div>
+      ${ins.volume_and_ef ? `<div class="prose" style="margin-bottom:6px;"><p>${esc(ins.volume_and_ef)}</p></div>` : ""}
+      <div id="vc-weekly" class="vchart-box"></div>
     </div>`;
   document.getElementById("p-coach").innerHTML = coachHtml;
 
-  // Tab 2: HRV & HRR
-  const h24 = d.hrv_24h_meta || {};
-  const hrr = d.hrr_analysis || {};
+  // --- Tab 2: HRV, HRR & Sleep ---
+  const h24 = d.hrv_24h_meta || {}, hrr = d.hrr_analysis || {};
   const hrrRows = (hrr.history || []).slice().reverse().map(r => `
     <tr>
-      <td>${esc(r.date?.slice(5))}</td>
+      <td>${esc((r.date || "").slice(5))}</td>
       <td>${esc((r.name || "").slice(0, 12))}</td>
       <td>${esc(r.stop_hr ?? "-")}</td>
       <td><strong>${r.drop_2m != null ? "-" + r.drop_2m : "-"}</strong></td>
-      <td>${r.drop_5m != null ? "-" + r.drop_5m : "-"}</td>
-      <td>${r.rel_recovery_2m_pct != null ? r.rel_recovery_2m_pct + "%" : "-"}</td>
+      <td>${r.in_workout_hrr60_best != null ? "-" + r.in_workout_hrr60_best : "-"}</td>
+      <td><strong>${r.effective_recovery_pct != null ? r.effective_recovery_pct + "%" : "-"}</strong></td>
     </tr>`).join("");
-
   document.getElementById("p-hrv").innerHTML = `
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">近 36 小时全天候 HRV 与身体电量</span>
-        <span class="pill pill-blue">夜 ${esc(h24.nocturnal_measured_avg_ms)} / 日 ${esc(h24.daytime_calibrated_avg_ms)} ms</span>
-      </div>
-      <div class="prose" style="margin-bottom:8px;">
-        <p>${esc(ins.hrv_36h || "")}</p>
-      </div>
-      ${chartBlock(d.charts?.sci_24h_hrv_bb, "夜间实测 5min HRV、日间还原 HRV 与身体电量双轴曲线")}
+      <div class="card-head"><span class="card-title">近 36 小时全天候 HRV 与身体电量</span><span class="pill pill-blue">夜 ${esc(h24.nocturnal_measured_avg_ms)} / 日 ${esc(h24.daytime_calibrated_avg_ms)} ms</span></div>
+      <div class="prose" style="margin-bottom:6px;"><p>${esc(ins.hrv_36h || "")}</p></div>
+      <div id="vc-hrv36" class="vchart-box"></div>
     </div>
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">跑后心率恢复速度 (HRR)</span>
-        <span class="pill pill-green">2.5分基线降 ${esc(hrr.baseline_drop_2m_bpm)} bpm</span>
-      </div>
-      <div class="prose" style="margin-bottom:8px;"><p>${esc(ins.hrr || hrr.parasympathetic_grade)}</p></div>
-      ${chartBlock(d.charts?.sci_hrr_trend, "停表后 0–15 分钟心率下降曲线与储备心率恢复率")}
-      <div class="tbl-wrap" style="margin-top:8px;">
-        <table>
-          <thead><tr><th>日期</th><th>训练课表</th><th>停表HR</th><th>+2.5m降幅</th><th>+5m降幅</th><th>恢复率</th></tr></thead>
-          <tbody>${hrrRows}</tbody>
-        </table>
-      </div>
+      <div class="card-head"><span class="card-title">跑后心率恢复速度 (HRR)</span><span class="pill pill-green">综合基线 ${esc(hrr.baseline_rel_recovery_2m_pct)}%</span></div>
+      <div class="prose" style="margin-bottom:6px;"><p>${esc(ins.hrr || hrr.parasympathetic_grade)}</p></div>
+      <div id="vc-hrr" class="vchart-box"></div>
+      <div class="tbl-wrap"><table><thead><tr><th>日期</th><th>课表</th><th>停表HR</th><th>+2.5m降</th><th>课中60s降</th><th>综合恢复率</th></tr></thead><tbody>${hrrRows}</tbody></table></div>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-title">静息心率、夜间 HRV 与睡眠归因</span></div>
-      ${ins.sleep_rhr ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.sleep_rhr)}</p></div>` : ""}
-      ${chartBlock(d.charts?.pdf_wellness, "静息心率 RHR、夜间 HRV 与睡眠结构")}
+      ${ins.sleep_rhr ? `<div class="prose" style="margin-bottom:6px;"><p>${esc(ins.sleep_rhr)}</p></div>` : ""}
+      <div id="vc-well" class="vchart-box"></div>
     </div>`;
 
-  // Tab 3: All-Distance, LT Dual-Check & Radar
+  // --- Tab 3: LT Dual-Check, All-Distance, Injury Radar, Zones ---
   const dp = d.all_distance_profile || {};
   const predRows = (dp.all_distance_predictions || []).map(p => `
-    <tr>
-      <td><strong>${esc(p.distance)}</strong></td>
-      <td><strong>${esc(p.current_time)}</strong> (${esc(p.current_pace)})</td>
-      <td>${esc(p.target_4w_time)} (${esc(p.target_4w_pace)})</td>
-      <td><strong style="color:var(--green);">${esc(p.target_8w_time)}</strong> (${esc(p.target_8w_pace)})</td>
-    </tr>`).join("");
+    <tr><td><strong>${esc(p.distance)}</strong></td><td><strong>${esc(p.current_time)}</strong> (${esc(p.current_pace)})</td><td>${esc(p.target_4w_time)} (${esc(p.target_4w_pace)})</td><td><strong style="color:var(--green);">${esc(p.target_8w_time)}</strong> (${esc(p.target_8w_pace)})</td></tr>`).join("");
   const dimBars = (rad.dimensions || []).map(dm => {
     const pct = Math.min(100, (dm.score_20 / 20) * 100);
     const col = dm.score_20 < 8 ? "#16a34a" : (dm.score_20 <= 13 ? "#d97706" : "#dc2626");
-    return `<div class="dim-item">
-      <div class="dim-top">
-        <div><span class="dim-name">${esc(dm.name)}</span> · <span class="dim-detail">${esc(dm.detail)}</span></div>
-        <div class="dim-score">${esc(dm.score_20)} / 20</div>
-      </div>
-      <div class="track"><div class="fill" style="width:${pct}%;background:${col};"></div></div>
-    </div>`;
+    return `<div class="dim-item"><div class="dim-top"><div><span class="dim-name">${esc(dm.name)}</span> · <span class="dim-detail">${esc(dm.detail)}</span></div><div class="dim-score">${esc(dm.score_20)} / 20</div></div><div class="track"><div class="fill" style="width:${pct}%;background:${col};"></div></div></div>`;
   }).join("");
   const zoneRows = Object.values(dp.training_zones || {}).map(z => `
-    <tr><td><strong>${esc(z.name)}</strong></td><td><strong>${esc(z.pace_range)}</strong></td><td>${esc(z.hr_range)}</td><td>${esc(z.power_range)}</td></tr>
-  `).join("");
+    <tr><td><strong>${esc(z.name)}</strong></td><td><strong>${esc(z.pace_range)}</strong></td><td>${esc(z.hr_range)}</td><td>${esc(z.power_range)}</td></tr>`).join("");
 
   document.getElementById("p-dist").innerHTML = `
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">乳酸阈值双轨评估（手表实测 × 算法推算）</span>
-        <span class="pill pill-blue">排课基准 ${esc(lt.fused_lt_pace || k.lt_pace)}</span>
-      </div>
-      <div class="prose" style="margin-bottom:10px;"><p>${esc(lt.diagnosis || "")}</p></div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>评估来源</th><th>阈值配速</th><th>阈值心率</th><th>阈值功率</th><th>时效与依据</th></tr></thead>
-          <tbody>
-            <tr><td><strong>手表 Firstbeat 测量</strong></td><td>${esc(lt.watch_lt_pace)}</td><td>${esc(lt.watch_lt_hr)} bpm</td><td>${esc(lt.watch_ftp_w)} W</td><td>${esc(lt.watch_updated_date)} 更新</td></tr>
-            <tr><td><strong>算法分段稳态推算</strong></td><td><strong>${esc(lt.model_lt_pace)}</strong></td><td>${esc(lt.model_lt_hr)} bpm</td><td>${esc(lt.model_ftp_w)} W</td><td>近 28 天 ${esc(lt.valid_laps_analyzed)} 个有效分段回归</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="card-head"><span class="card-title">乳酸阈值双轨评估（手表实测 × 算法推算）</span><span class="pill pill-blue">融合基准 ${esc(lt.fused_lt_pace || k.lt_pace)}</span></div>
+      <div class="prose" style="margin-bottom:8px;"><p>${esc(lt.diagnosis || "")}</p></div>
+      <div class="tbl-wrap"><table><thead><tr><th>来源</th><th>阈值配速</th><th>心率</th><th>功率</th><th>依据</th></tr></thead><tbody>
+        <tr><td><strong>手表 Firstbeat</strong></td><td>${esc(lt.watch_lt_pace)}</td><td>${esc(lt.watch_lt_hr)} bpm</td><td>${esc(lt.watch_ftp_w)} W</td><td>${esc(lt.watch_updated_date)} 更新</td></tr>
+        <tr><td><strong>算法稳态回归</strong></td><td><strong>${esc(lt.model_lt_pace)}</strong></td><td>${esc(lt.model_lt_hr)} bpm</td><td>${esc(lt.model_ftp_w)} W</td><td>近 28 天 ${esc(lt.valid_laps_analyzed)} 分段</td></tr>
+      </tbody></table></div>
     </div>
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">全距离段能力评估与进阶目标</span>
-        <span class="pill pill-neutral">衰减指数 ${esc(dp.endurance_decay_exponent_b)}</span>
-      </div>
+      <div class="card-head"><span class="card-title">全距离段能力曲线与进阶目标</span><span class="pill pill-neutral">衰减指数 ${esc(dp.endurance_decay_exponent_b)}</span></div>
       <div class="prose" style="margin-bottom:6px;"><p>${esc(dp.phenotype_diagnosis)}</p></div>
-      ${chartBlock(d.charts?.sci_speed_radar, "400m–半马速度耐力曲线与五维伤病风险雷达")}
-      <div class="tbl-wrap" style="margin-top:8px;">
-        <table>
-          <thead><tr><th>距离</th><th>当前能力</th><th>4 周目标</th><th>8 周目标</th></tr></thead>
-          <tbody>${predRows}</tbody>
-        </table>
-      </div>
+      <div id="vc-dist" class="vchart-box"></div>
+      <div class="tbl-wrap"><table><thead><tr><th>距离</th><th>当前能力</th><th>4 周目标</th><th>8 周目标</th></tr></thead><tbody>${predRows}</tbody></table></div>
     </div>
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">隐性疲劳与伤病风险拆解</span>
-        <span class="pill ${radCls}">${esc(rad.risk_score_100)} / 100</span>
-      </div>
-      <div class="prose" style="margin-bottom:10px;"><p>${esc(rad.summary_badge)}</p></div>
+      <div class="card-head"><span class="card-title">隐性疲劳与伤病风险雷达</span><span class="pill ${radCls}">${esc(rad.risk_score_100)} / 100</span></div>
+      <div class="prose" style="margin-bottom:6px;"><p>${esc(rad.summary_badge)}</p></div>
+      <div id="vc-radar" class="vchart-box"></div>
       ${dimBars}
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">动态五区间与心率分布诊断</span></div>
-      ${ins.zones_polarization ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.zones_polarization)}</p></div>` : ""}
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>区间</th><th>目标配速</th><th>心率范围</th><th>功率范围</th></tr></thead>
-          <tbody>${zoneRows}</tbody>
-        </table>
-      </div>
+      <div class="card-head"><span class="card-title">动态五区间（同步锚定双轨阈值）</span></div>
+      ${ins.zones_polarization ? `<div class="prose" style="margin-bottom:6px;"><p>${esc(ins.zones_polarization)}</p></div>` : ""}
+      <div class="tbl-wrap"><table><thead><tr><th>区间</th><th>目标配速</th><th>心率范围</th><th>功率范围</th></tr></thead><tbody>${zoneRows}</tbody></table></div>
     </div>`;
 
-  // Tab 4: Schedule & Gear
+  // --- Tab 4: Schedule, Shoes, Biomechanics ---
   const schedItems = (d.upcoming_schedule || []).map(s => `
     <div class="sched-row">
-      <div class="sched-top">
-        <span class="sched-title">${esc(s.name)}</span>
-        <span class="sched-date">${esc(s.date.slice(5))} ${esc(s.weekday)}</span>
-      </div>
+      <div class="sched-top"><span class="sched-title">${esc(s.name)}</span><span class="sched-date">${esc(s.date.slice(5))} ${esc(s.weekday)}</span></div>
       <div class="sched-desc">${esc(s.description)}</div>
       <div class="sched-foot">${esc(s.shoe)} · 预计 ${esc(s.dist_km)} km</div>
     </div>`).join("");
   const shoeRows = ((d.shoe_gear_matrix || {}).shoes || []).map(sh => `
-    <tr>
-      <td><strong>${esc(sh.name)}</strong></td>
-      <td>${esc(sh.runs)} 次</td>
-      <td><strong>${esc(sh.total_km)}</strong> / ${esc(sh.max_km)} km (${esc(sh.remaining_life_pct)}%)</td>
-      <td>${esc(sh.avg_pace)}</td>
-      <td>${esc(sh.avg_gct_ms ?? "-")} ms</td>
-    </tr>`).join("");
+    <tr><td><strong>${esc(sh.name)}</strong></td><td>${esc(sh.runs)} 次</td><td><strong>${esc(sh.total_km)}</strong>/${esc(sh.max_km)} km (${esc(sh.remaining_life_pct)}%)</td><td>${esc(sh.avg_pace)}</td><td>${esc(sh.avg_gct_ms ?? "-")} ms</td></tr>`).join("");
   const runRows = (d.recent_runs || []).map(r => `
-    <tr>
-      <td>${esc(r.date.slice(5))}</td>
-      <td><strong>${esc(r.name.slice(0, 12))}</strong></td>
-      <td>${esc(r.dist_km)}k</td>
-      <td><strong>${esc(r.pace)}</strong></td>
-      <td>${esc(r.avg_hr ?? "-")}</td>
-      <td>${esc(r.ef_adj ?? "-")}</td>
-      <td>${r.hrr_2m != null ? "-" + r.hrr_2m : "-"}</td>
-      <td>${esc(r.shoe)}</td>
-    </tr>`).join("");
+    <tr><td>${esc(r.date.slice(5))}</td><td><strong>${esc(r.name.slice(0, 12))}</strong></td><td>${esc(r.dist_km)}k</td><td><strong>${esc(r.pace)}</strong></td><td>${esc(r.avg_hr ?? "-")}</td><td>${esc(r.ef_adj ?? "-")}</td><td>${r.hrr_eff != null ? r.hrr_eff + "%" : "-"}</td><td>${esc(r.shoe)}</td></tr>`).join("");
 
   document.getElementById("p-plan").innerHTML = `
     <div class="card">
-      <div class="card-head">
-        <span class="card-title">已同步手表的滚动课表</span>
-        <span class="pill pill-green">${(d.upcoming_schedule || []).length} 节待执行</span>
-      </div>
+      <div class="card-head"><span class="card-title">已同步手表的滚动课表</span><span class="pill pill-green">${(d.upcoming_schedule || []).length} 节待执行</span></div>
       ${ins.schedule_rationale ? `<div class="prose" style="margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--line);"><p>${esc(ins.schedule_rationale)}</p></div>` : ""}
       ${schedItems || "<p>暂无待执行课表</p>"}
     </div>
     <div class="card">
-      <div class="card-head"><span class="card-title">跑鞋生物力学对比与轮换诊断</span></div>
+      <div class="card-head"><span class="card-title">跑鞋寿命与轮换诊断</span></div>
       <div class="prose" style="margin-bottom:8px;"><p>${esc(ins.shoe_biomechanics || d.shoe_gear_matrix?.coach_shoe_rule)}</p></div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>跑鞋</th><th>次数</th><th>里程与寿命余量</th><th>均配速</th><th>平均触地</th></tr></thead>
-          <tbody>${shoeRows}</tbody>
-        </table>
-      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>跑鞋</th><th>次数</th><th>里程与余量</th><th>均配速</th><th>均触地</th></tr></thead><tbody>${shoeRows}</tbody></table></div>
     </div>
     <div class="card">
       <div class="card-head"><span class="card-title">跑姿动力学演进与近期记录</span></div>
-      ${ins.biomechanics_splits ? `<div class="prose" style="margin-bottom:8px;"><p>${esc(ins.biomechanics_splits)}</p></div>` : ""}
-      ${chartBlock(d.charts?.pdf_biomech, "步频×步幅等配速前沿面与触地时间走势")}
-      ${chartBlock(d.charts?.pdf_splits, "重点课表分段解剖与有氧解耦率")}
-      <div class="tbl-wrap" style="margin-top:8px;">
-        <table>
-          <thead><tr><th>日期</th><th>名称</th><th>距离</th><th>配速</th><th>均HR</th><th>校准EF</th><th>2.5m降</th><th>跑鞋</th></tr></thead>
-          <tbody>${runRows}</tbody>
-        </table>
-      </div>
+      ${ins.biomechanics_splits ? `<div class="prose" style="margin-bottom:6px;"><p>${esc(ins.biomechanics_splits)}</p></div>` : ""}
+      <div id="vc-bio" class="vchart-box"></div>
+      <div class="tbl-wrap"><table><thead><tr><th>日期</th><th>名称</th><th>距离</th><th>配速</th><th>均HR</th><th>校准EF</th><th>HRR</th><th>跑鞋</th></tr></thead><tbody>${runRows}</tbody></table></div>
     </div>`;
+
+  // Draw all interactive vector charts!
+  const v = d.vector || {};
+  drawWeeklyEfChart("vc-weekly", v.weekly);
+  draw36hHrvChart("vc-hrv36", v.hrv_36h);
+  drawHrrChart("vc-hrr", v.hrr);
+  drawWellness30dChart("vc-well", v.wellness);
+  drawAllDistanceChart("vc-dist", dp.all_distance_predictions);
+  drawRadarSvg("vc-radar", rad);
+  drawBiomechChart("vc-bio", v.runs);
 }
 
-async function tryDecrypt(keyStr) {
+// =====================================================================
+// DECRYPTION, 60s SILENT HOT-RELOAD & ONE-CLICK CLOUD REAL-TIME SYNC
+// =====================================================================
+async function fetchAndDecrypt(keyStr) {
   const keyBytes = b64urlToBytes(keyStr.trim());
   if (keyBytes.length !== 32) throw new Error("密钥长度无效");
   const resp = await fetch("./payload.enc.json?t=" + Date.now(), { cache: "no-store" });
@@ -649,7 +882,84 @@ async function tryDecrypt(keyStr) {
   const enc = await resp.json();
   const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, ["decrypt"]);
   const plainBuf = await crypto.subtle.decrypt({ name: "AES-GCM", iv: b64urlToBytes(enc.iv) }, cryptoKey, b64urlToBytes(enc.ct));
-  return JSON.parse(new TextDecoder("utf-8").decode(plainBuf));
+  return { encTs: enc.ts || "", data: JSON.parse(new TextDecoder("utf-8").decode(plainBuf)) };
+}
+
+function setBanner(msg, timer = "") {
+  const b = document.getElementById("live-banner");
+  if (!msg) { b.classList.remove("show"); return; }
+  document.getElementById("live-msg").textContent = msg;
+  document.getElementById("live-timer").textContent = timer;
+  b.classList.add("show");
+}
+
+function closePatModal() { document.getElementById("pat-modal").classList.remove("open"); }
+function savePatAndSync() {
+  const v = document.getElementById("pat-input").value.trim();
+  if (!v) return;
+  localStorage.setItem(PAT_KEY, v);
+  closePatModal();
+  triggerCloudFastSync(v);
+}
+
+async function handleLiveRefresh() {
+  if (SYNC_IN_PROGRESS) return;
+  const pat = localStorage.getItem(PAT_KEY);
+  if (!pat) {
+    document.getElementById("pat-modal").classList.add("open");
+    return;
+  }
+  await triggerCloudFastSync(pat);
+}
+
+async function triggerCloudFastSync(pat) {
+  SYNC_IN_PROGRESS = true;
+  const btn = document.getElementById("refresh-btn");
+  btn.classList.add("spinning");
+  document.getElementById("refresh-txt").textContent = "同步中";
+  const baselineTs = LAST_TS;
+
+  try {
+    setBanner("正在触发佳明云端极速同步...", "0s");
+    const r = await fetch("https://api.github.com/repos/Class-A-Crook/garmin-analysis/actions/workflows/garmin-fast.yml/dispatches", {
+      method: "POST",
+      headers: {
+        "Authorization": "Bearer " + pat,
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ ref: "main", inputs: { force_ai: "false" } }),
+    });
+    if (r.status === 401 || r.status === 403) {
+      localStorage.removeItem(PAT_KEY);
+      throw new Error("Token 权限不足或已失效，请重新输入");
+    }
+    if (!r.ok) throw new Error("触发失败 HTTP " + r.status);
+
+    const t0 = Date.now();
+    for (let i = 0; i < 24; i++) {
+      const elSec = Math.round((Date.now() - t0) / 1000);
+      setBanner("云端正在从佳明拉取最新心率与 HRV 数据...", `${elSec}s`);
+      await new Promise(res => setTimeout(res, 5000));
+      const { encTs, data } = await fetchAndDecrypt(ACTIVE_KEY);
+      if (encTs && encTs !== baselineTs) {
+        LAST_TS = encTs;
+        renderDashboard(data);
+        setBanner(`已同步至最新数据（${encTs.slice(11, 16)}）`);
+        setTimeout(() => setBanner(""), 4500);
+        return;
+      }
+    }
+    setBanner("云端同步已完成排队，稍后将自动热更新。");
+    setTimeout(() => setBanner(""), 5000);
+  } catch (e) {
+    setBanner("刷新失败：" + e.message);
+    setTimeout(() => setBanner(""), 6000);
+  } finally {
+    SYNC_IN_PROGRESS = false;
+    btn.classList.remove("spinning");
+    document.getElementById("refresh-txt").textContent = "刷新";
+  }
 }
 
 async function boot() {
@@ -668,11 +978,27 @@ async function boot() {
 
   if (keyStr) {
     try {
-      const data = await tryDecrypt(keyStr);
+      const { encTs, data } = await fetchAndDecrypt(keyStr);
+      ACTIVE_KEY = keyStr;
+      LAST_TS = encTs;
       localStorage.setItem(STORAGE_KEY, keyStr);
       document.getElementById("auth-gate").style.display = "none";
       document.getElementById("app").style.display = "block";
       renderDashboard(data);
+
+      // Silent 60-second background hot-reload check
+      setInterval(async () => {
+        if (SYNC_IN_PROGRESS || document.hidden || !ACTIVE_KEY) return;
+        try {
+          const { encTs: newTs, data: newData } = await fetchAndDecrypt(ACTIVE_KEY);
+          if (newTs && newTs !== LAST_TS) {
+            LAST_TS = newTs;
+            renderDashboard(newData);
+            setBanner(`后台已自动更新（${newTs.slice(11, 16)}）`);
+            setTimeout(() => setBanner(""), 4000);
+          }
+        } catch {}
+      }, 60000);
       return;
     } catch (e) {
       document.getElementById("gate-msg").textContent = "解密失败：" + e.message;
@@ -685,7 +1011,9 @@ document.getElementById("unlock-btn").addEventListener("click", async () => {
   const val = document.getElementById("key-input").value.trim();
   if (!val) return;
   try {
-    const data = await tryDecrypt(val);
+    const { encTs, data } = await fetchAndDecrypt(val);
+    ACTIVE_KEY = val;
+    LAST_TS = encTs;
     localStorage.setItem(STORAGE_KEY, val);
     document.getElementById("auth-gate").style.display = "none";
     document.getElementById("app").style.display = "block";
